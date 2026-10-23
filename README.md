@@ -2,14 +2,14 @@
 
 Hệ thống quản lý sản phẩm và tồn kho cho cửa hàng/doanh nghiệp nhỏ, triển khai trên Railway.
 
-**Stack:** Node.js 20+ • Express 5 • MySQL 8 • Bootstrap • Railway • GitHub Actions
+**Stack:** Node.js 22+ • Express 5 • MySQL 8 • Bootstrap • Railway • GitHub Actions
 
 ## Chạy trên máy (khoảng 10 phút)
 
-Yêu cầu: Node.js 20+, Docker Desktop (để chạy MySQL).
+Yêu cầu: Node.js 22+, Docker Desktop (để chạy MySQL).
 
 ```bash
-git clone <repo-url> && cd cloud-inventory
+git clone https://github.com/longtapdanhcode/Icloud.git && cd Icloud
 npm install
 cp .env.example .env
 docker compose up -d       # chạy MySQL local trên cổng 3306
