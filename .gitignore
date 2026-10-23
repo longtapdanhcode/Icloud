@@ -1,0 +1,15 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+# backup database không được commit
+backups/
+*.sql.gz
+dump*.sql
+
+npm-debug.log*
+.DS_Store
+.vscode/
+.idea/
+coverage/
