@@ -102,16 +102,19 @@
 
       <!-- Page Content -->
       <main class="page-content">
-        <!-- Mock Notice Banner -->
-        <div class="mock-notice-banner">
-          <div class="d-flex align-items-center gap-2">
-            <span class="mock-notice-pill">MOCK DATA</span>
-            <span>
-              <strong>Giao diện mẫu tĩnh (Người 1):</strong> Danh sách nhóm phân loại theo bảng <code>categories</code>. Chưa thực hiện gọi API CRUD thật.
+        <!-- Live Connection Status Alert (Optional Notification Banner) -->
+        <div class="alert alert-light border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3" role="status">
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fs-6">
+              <i class="bi bi-hdd-network me-1"></i>MySQL Live
             </span>
+            <div>
+              <div class="fw-semibold text-dark">Phân hệ Quản lý Danh mục (Người 1)</div>
+              <div class="small text-muted">Dữ liệu được truy vấn và đồng bộ trực tiếp từ cơ sở dữ liệu MySQL qua REST API.</div>
+            </div>
           </div>
-          <span class="badge bg-warning-subtle text-dark border border-warning-subtle d-none d-md-inline-block">
-            Phạm vi Người 1
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle d-none d-md-inline-block">
+            REST API: /api/categories
           </span>
         </div>
 
@@ -122,7 +125,9 @@
               <div class="d-flex align-items-center justify-content-between">
                 <div>
                   <div class="text-muted small fw-medium">Tổng số danh mục</div>
-                  <div class="fs-3 fw-bold text-dark mt-1" id="statTotalCategories">--</div>
+                  <div class="fs-3 fw-bold text-dark mt-1" id="statTotalCategories">
+                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                  </div>
                   <div class="text-success small mt-1"><i class="bi bi-check2-circle me-1"></i> Đang hoạt động</div>
                 </div>
                 <div class="stat-icon primary">
@@ -137,7 +142,9 @@
               <div class="d-flex align-items-center justify-content-between">
                 <div>
                   <div class="text-muted small fw-medium">Tổng sản phẩm đã phân loại</div>
-                  <div class="fs-3 fw-bold text-primary mt-1" id="statTotalCatProducts">--</div>
+                  <div class="fs-3 fw-bold text-primary mt-1" id="statTotalCatProducts">
+                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+                  </div>
                   <div class="text-muted small mt-1"><i class="bi bi-link-45deg me-1"></i> Khóa ngoại foreign key</div>
                 </div>
                 <div class="stat-icon success">
@@ -152,8 +159,8 @@
               <div class="d-flex align-items-center justify-content-between">
                 <div>
                   <div class="text-muted small fw-medium">Phân quyền thao tác</div>
-                  <div class="fs-6 fw-bold text-dark mt-1">Chỉ Quản trị viên (ADMIN)</div>
-                  <div class="text-muted small mt-1"><i class="bi bi-lock me-1 text-warning"></i> Nhân viên chỉ có quyền xem</div>
+                  <div class="fs-6 fw-bold text-dark mt-1" id="authRoleIndicator">Quản trị viên (ADMIN)</div>
+                  <div class="text-muted small mt-1"><i class="bi bi-shield-lock me-1 text-warning"></i> ADMIN toàn quyền, STAFF chỉ xem</div>
                 </div>
                 <div class="stat-icon warning">
                   <i class="bi bi-shield-lock"></i>
@@ -171,38 +178,78 @@
                 <div class="input-group">
                   <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
                   <input type="text" class="form-control border-start-0 ps-0" id="categorySearchInput" placeholder="Tìm theo tên danh mục hoặc mô tả...">
+                  <button class="btn btn-outline-secondary btn-sm" type="button" id="clearSearchBtn" title="Xóa tìm kiếm" style="display: none;">
+                    <i class="bi bi-x"></i>
+                  </button>
                 </div>
               </div>
               <div class="col-md-4 text-md-end">
-                <a href="/category-form.html" class="btn btn-outline-primary btn-sm">
-                  <i class="bi bi-plus-circle me-1"></i> Tạo danh mục mới
+                <a href="/category-form.html" class="btn btn-primary-modern btn-sm" id="addNewCategoryBtn">
+                  <i class="bi bi-plus-circle me-1"></i> Thêm danh mục mới
                 </a>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Global Alert for Category List (Network/Server) -->
+        <div id="categoryAlertContainer"></div>
+
         <!-- Category Table Card -->
         <div class="content-card">
           <div class="content-card-header">
             <div class="d-flex align-items-center gap-2">
               <h2 class="h6 mb-0 fw-bold">Danh sách các danh mục hàng hóa</h2>
-              <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2" id="categoryResultCount">4</span>
+              <span class="badge bg-primary-subtle text-primary rounded-pill px-2" id="categoryResultCount">--</span>
             </div>
             <div class="small text-muted">
-              Dữ liệu mẫu từ <code>seed.js</code>
+              Nguồn dữ liệu: bảng <code>categories</code> (MySQL)
             </div>
           </div>
-          <div class="table-responsive">
-            <table class="table table-modern align-middle">
+
+          <!-- Loading State -->
+          <div id="categoryLoadingState" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+              <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <div class="mt-3 text-secondary fw-medium">Đang tải danh sách danh mục từ máy chủ...</div>
+          </div>
+
+          <!-- Error State -->
+          <div id="categoryErrorState" class="text-center py-5 d-none">
+            <div class="text-danger mb-2">
+              <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+            </div>
+            <h5 class="fw-bold text-dark">Không thể kết nối đến máy chủ</h5>
+            <p class="text-secondary small mb-3" id="categoryErrorMessage">Đã xảy ra sự cố khi tải dữ liệu từ API.</p>
+            <button class="btn btn-outline-primary btn-sm px-3" id="btnRetryFetch">
+              <i class="bi bi-arrow-clockwise me-1"></i> Thử lại
+            </button>
+          </div>
+
+          <!-- Empty State -->
+          <div id="categoryEmptyState" class="text-center py-5 d-none">
+            <div class="text-muted mb-2">
+              <i class="bi bi-folder-x fs-1"></i>
+            </div>
+            <h6 class="fw-bold text-dark">Không có danh mục nào</h6>
+            <p class="text-secondary small mb-3" id="categoryEmptyMessage">Chưa có danh mục nào được khởi tạo trong hệ thống.</p>
+            <a href="/category-form.html" class="btn btn-primary-modern btn-sm px-3">
+              <i class="bi bi-plus-lg me-1"></i> Thêm danh mục đầu tiên
+            </a>
+          </div>
+
+          <!-- Table Content -->
+          <div class="table-responsive d-none" id="categoryTableContainer">
+            <table class="table table-modern align-middle mb-0">
               <thead>
                 <tr>
                   <th style="width: 50px;">#</th>
-                  <th style="width: 120px;">Mã nhóm</th>
-                  <th style="width: 200px;">Tên danh mục</th>
+                  <th style="width: 110px;">Mã nhóm</th>
+                  <th style="width: 220px;">Tên danh mục</th>
                   <th>Mô tả chi tiết</th>
                   <th style="width: 160px;" class="text-center">Sản phẩm liên kết</th>
-                  <th style="width: 100px;" class="text-end">Thao tác</th>
+                  <th style="width: 120px;" class="text-end">Thao tác</th>
                 </tr>
               </thead>
               <tbody id="categoryTableBody">
@@ -215,31 +262,50 @@
     </div>
   </div>
 
-  <!-- Delete Modal Demo -->
-  <div class="modal fade" id="deleteDemoCatModal" tabindex="-1" aria-labelledby="deleteDemoCatModalLabel" aria-hidden="true">
+  <!-- Delete Modal with Real API Support -->
+  <div class="modal fade" id="deleteCatModal" tabindex="-1" aria-labelledby="deleteCatModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow">
         <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title text-danger fs-6 fw-bold" id="deleteDemoCatModalLabel">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa danh mục (Demo)
+          <h5 class="modal-title text-danger fs-6 fw-bold" id="deleteCatModalLabel">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa danh mục
           </h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="closeDeleteModalBtn"></button>
         </div>
         <div class="modal-body py-3">
-          <p class="mb-2">Bạn có chắc chắn muốn xóa danh mục sau?</p>
+          <!-- Modal Inline Error Alert -->
+          <div id="deleteModalAlert" class="alert alert-danger d-none py-2 px-3 small mb-3" role="alert"></div>
+
+          <p class="mb-2">Bạn có chắc chắn muốn xóa danh mục sau khỏi hệ thống?</p>
           <div class="p-2 bg-light rounded border fw-semibold text-dark mb-3" id="deleteCatTargetName">--</div>
           <div id="deleteCatWarningText"></div>
         </div>
         <div class="modal-footer border-0 pt-0">
-          <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
-          <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="alert('Đã kích hoạt thao tác demo xóa danh mục.')">Xác nhận xóa (Mẫu)</button>
+          <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal" id="cancelDeleteBtn">Hủy bỏ</button>
+          <button type="button" class="btn btn-danger btn-sm" id="confirmDeleteBtn">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="deleteSpinner" role="status"></span>
+            <i class="bi bi-trash me-1" id="deleteIcon"></i>
+            <span id="deleteBtnText">Xác nhận xóa</span>
+          </button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- Toast Notification Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="appToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2" id="appToastBody">
+          <i class="bi bi-check-circle-fill fs-5"></i>
+          <span id="appToastMessage">Thao tác thành công.</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/products-mock-data.js"></script>
   <script src="/js/categories-ui.js"></script>
 </body>
 </html>
