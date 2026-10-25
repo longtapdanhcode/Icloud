@@ -8,22 +8,62 @@ const AppError = require('../../utils/AppError');
  * Phụ trách: Người 1
  */
 
+const ALLOWED_SORTS = ['name', 'price', 'quantity', 'created_at', 'id'];
+const ALLOWED_ORDERS = ['asc', 'desc'];
+
 /**
  * GET /api/products
- * Lấy danh sách sản phẩm có phân trang (page, limit) và lọc tùy chọn
+ * Lấy danh sách sản phẩm có tìm kiếm (search), lọc (category_id), sắp xếp (sort, order) và phân trang (page, limit)
  */
 async function getProducts(req, res) {
-  const { page, limit, offset } = parsePagination(req.query);
-
-  let categoryId;
-  if (req.query.category_id !== undefined) {
-    const parsedCatId = Number.parseInt(req.query.category_id, 10);
-    if (!Number.isInteger(parsedCatId) || parsedCatId <= 0) {
-      throw AppError.badRequest('category_id không hợp lệ');
+  // 1. Validate page nếu có truyền
+  if (req.query.page !== undefined && req.query.page !== '') {
+    if (!/^[1-9]\d*$/.test(String(req.query.page).trim())) {
+      throw AppError.badRequest('Tham số page phải là số nguyên dương');
     }
-    categoryId = parsedCatId;
   }
 
+  // 2. Validate limit nếu có truyền
+  if (req.query.limit !== undefined && req.query.limit !== '') {
+    if (!/^[1-9]\d*$/.test(String(req.query.limit).trim())) {
+      throw AppError.badRequest('Tham số limit phải là số nguyên dương');
+    }
+  }
+
+  const { page, limit, offset } = parsePagination(req.query);
+
+  // 3. Validate category_id nếu có truyền
+  let categoryId;
+  if (req.query.category_id !== undefined && req.query.category_id !== '') {
+    const rawCatId = String(req.query.category_id).trim();
+    if (!/^[1-9]\d*$/.test(rawCatId)) {
+      throw AppError.badRequest('category_id không hợp lệ');
+    }
+    categoryId = Number.parseInt(rawCatId, 10);
+  }
+
+  // 4. Validate sort nếu có truyền
+  let sort = 'id';
+  if (req.query.sort !== undefined && req.query.sort !== '') {
+    const sortLower = String(req.query.sort).trim().toLowerCase();
+    if (!ALLOWED_SORTS.includes(sortLower)) {
+      const publicSorts = ALLOWED_SORTS.filter(s => s !== 'id').join(', ');
+      throw AppError.badRequest(`Cột sắp xếp (sort) không hợp lệ. Chỉ cho phép: ${publicSorts}`);
+    }
+    sort = sortLower;
+  }
+
+  // 5. Validate order nếu có truyền
+  let order = 'asc';
+  if (req.query.order !== undefined && req.query.order !== '') {
+    const orderLower = String(req.query.order).trim().toLowerCase();
+    if (!ALLOWED_ORDERS.includes(orderLower)) {
+      throw AppError.badRequest("Thứ tự sắp xếp (order) phải là 'asc' hoặc 'desc'");
+    }
+    order = orderLower;
+  }
+
+  // 6. Search query
   const search = typeof req.query.search === 'string' ? req.query.search : undefined;
 
   const { items, total } = await productsService.listProducts({
@@ -31,6 +71,8 @@ async function getProducts(req, res) {
     offset,
     search,
     category_id: categoryId,
+    sort,
+    order,
   });
 
   return paginated(res, items, { page, limit, total });
@@ -43,7 +85,6 @@ async function getProducts(req, res) {
 async function getProductById(req, res) {
   const { id } = req.params;
 
-  // Kiểm tra ID phải là số nguyên dương hợp lệ
   if (!/^[1-9]\d*$/.test(id)) {
     throw AppError.badRequest('ID sản phẩm không hợp lệ');
   }
@@ -92,10 +133,11 @@ async function createProduct(req, res) {
   // 3. Validate Category ID (nếu cung cấp thì danh mục phải tồn tại)
   let finalCategoryId = null;
   if (category_id !== undefined && category_id !== null) {
-    const parsedCatId = Number.parseInt(category_id, 10);
-    if (!Number.isInteger(parsedCatId) || parsedCatId <= 0 || String(parsedCatId) !== String(category_id)) {
+    const rawCat = String(category_id).trim();
+    if (!/^[1-9]\d*$/.test(rawCat)) {
       throw AppError.badRequest('category_id không hợp lệ');
     }
+    const parsedCatId = Number.parseInt(rawCat, 10);
     const catExists = await productsService.checkCategoryExists(parsedCatId);
     if (!catExists) {
       throw AppError.notFound('Danh mục không tồn tại');
@@ -141,6 +183,13 @@ async function updateProduct(req, res) {
 
   if (!/^[1-9]\d*$/.test(id)) {
     throw AppError.badRequest('ID sản phẩm không hợp lệ');
+  }
+
+  // Chặn cập nhật trực tiếp quantity theo quy ước kiến trúc Inventory
+  if (req.body && req.body.quantity !== undefined) {
+    throw AppError.badRequest(
+      'Không được phép chỉnh sửa số lượng tồn kho (quantity) trực tiếp qua API sản phẩm. Vui lòng sử dụng phân hệ Quản lý Kho.'
+    );
   }
 
   const productId = Number.parseInt(id, 10);
@@ -190,10 +239,11 @@ async function updateProduct(req, res) {
     if (category_id === null) {
       nextCategoryId = null;
     } else {
-      const parsedCatId = Number.parseInt(category_id, 10);
-      if (!Number.isInteger(parsedCatId) || parsedCatId <= 0 || String(parsedCatId) !== String(category_id)) {
+      const rawCat = String(category_id).trim();
+      if (!/^[1-9]\d*$/.test(rawCat)) {
         throw AppError.badRequest('category_id không hợp lệ');
       }
+      const parsedCatId = Number.parseInt(rawCat, 10);
       const catExists = await productsService.checkCategoryExists(parsedCatId);
       if (!catExists) {
         throw AppError.notFound('Danh mục không tồn tại');

@@ -7,37 +7,69 @@ const db = require('../../config/db');
  */
 
 /**
- * Lấy danh sách sản phẩm kèm phân trang và lọc tùy chọn
+ * Escape các ký tự đại diện đặc biệt của mệnh đề SQL LIKE
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeLike(str) {
+  return str.replace(/([%_\\])/g, '\\$1');
+}
+
+/**
+ * Danh sách cột được phép sắp xếp (whitelist an toàn chống SQL injection)
+ */
+const SORTABLE_COLUMNS = {
+  name: 'p.name',
+  price: 'p.price',
+  quantity: 'p.quantity',
+  created_at: 'p.created_at',
+  id: 'p.id',
+};
+
+/**
+ * Lấy danh sách sản phẩm kèm tìm kiếm, lọc, sắp xếp và phân trang
  * @param {Object} options
  * @param {number} options.limit
  * @param {number} options.offset
  * @param {string} [options.search]
  * @param {number} [options.category_id]
+ * @param {string} [options.sort='id']
+ * @param {string} [options.order='asc']
  * @returns {Promise<{ items: Array, total: number }>}
  */
-async function listProducts({ limit, offset, search, category_id }) {
+async function listProducts({ limit, offset, search, category_id, sort = 'id', order = 'asc' }) {
   const conditions = [];
   const params = [];
 
+  // 1. Lọc theo danh mục
   if (category_id) {
     conditions.push('p.category_id = ?');
     params.push(category_id);
   }
 
-  if (search && search.trim()) {
+  // 2. Tìm kiếm theo tên hoặc mã SKU (hỗ trợ chuỗi con, xử lý ký tự đặc biệt)
+  if (search && typeof search === 'string' && search.trim()) {
     conditions.push('(p.name LIKE ? OR p.sku LIKE ?)');
-    const term = `%${search.trim()}%`;
+    const term = `%${escapeLike(search.trim())}%`;
     params.push(term, term);
   }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  // 1. Đếm tổng số bản ghi phù hợp
+  // 3. Đếm tổng số bản ghi phù hợp với bộ lọc hiện tại
   const countSql = `SELECT COUNT(*) AS total FROM products p ${whereClause}`;
   const countRows = await db.query(countSql, params);
   const total = Number(countRows[0]?.total || 0);
 
-  // 2. Lấy danh sách sản phẩm kèm tên danh mục (JOIN categories)
+  // 4. Xác định cột sắp xếp an toàn từ whitelist
+  const sortKey = (sort || 'id').toLowerCase();
+  const sortColumn = SORTABLE_COLUMNS[sortKey] || 'p.id';
+  const sortDirection = (order || 'asc').toLowerCase() === 'desc' ? 'DESC' : 'ASC';
+
+  // Thứ tự phụ theo id để kết quả phân trang luôn ổn định
+  const secondaryOrder = sortColumn === 'p.id' ? '' : `, p.id ${sortDirection}`;
+
+  // 5. Truy vấn danh sách bản ghi với LIMIT và OFFSET
   const selectSql = `
     SELECT
       p.id,
@@ -52,7 +84,7 @@ async function listProducts({ limit, offset, search, category_id }) {
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
     ${whereClause}
-    ORDER BY p.id ASC
+    ORDER BY ${sortColumn} ${sortDirection}${secondaryOrder}
     LIMIT ? OFFSET ?
   `;
 
@@ -190,4 +222,5 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  SORTABLE_COLUMNS,
 };
