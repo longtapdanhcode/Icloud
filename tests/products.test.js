@@ -1,16 +1,40 @@
 process.env.NODE_ENV = 'test';
 
-const { test, after, beforeEach, afterEach } = require('node:test');
+const { test, after, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
 const request = require('supertest');
 const app = require('../src/app');
 const db = require('../src/config/db');
 
+// Danh sách ID sản phẩm test tạo trong quá trình kiểm thử cần dọn dẹp
+const createdProductIds = [];
+
+afterEach(async () => {
+  if (createdProductIds.length > 0) {
+    const idsToClean = [...createdProductIds];
+    createdProductIds.length = 0;
+    try {
+      await db.query('DELETE FROM products WHERE id IN (?)', [idsToClean]);
+    } catch {
+      // bỏ qua lỗi nếu bản ghi đã bị xóa
+    }
+  }
+});
+
 after(async () => {
+  // Dọn dẹp an toàn các sản phẩm test nếu còn sót
+  try {
+    await db.query("DELETE FROM products WHERE sku LIKE 'TEST_SKU_%'");
+  } catch {
+    // bỏ qua
+  }
   await db.close();
 });
 
-// 1. GET danh sách sản phẩm thành công
+// ==========================================
+// 1. KIỂM THỬ CÁC API ĐỌC (GET)
+// ==========================================
+
 test('GET /api/products - lấy danh sách sản phẩm thành công kèm phân trang và JOIN category', async () => {
   const res = await request(app).get('/api/products');
 
@@ -19,7 +43,6 @@ test('GET /api/products - lấy danh sách sản phẩm thành công kèm phân 
   assert.ok(Array.isArray(res.body.data));
   assert.ok(res.body.data.length > 0);
 
-  // Kiểm tra cấu trúc item theo đúng yêu cầu
   const item = res.body.data[0];
   assert.ok('id' in item);
   assert.ok('category_id' in item);
@@ -31,7 +54,6 @@ test('GET /api/products - lấy danh sách sản phẩm thành công kèm phân 
   assert.ok('min_stock' in item);
   assert.ok('created_at' in item);
 
-  // Kiểm tra meta phân trang
   assert.equal(res.body.meta.page, 1);
   assert.equal(typeof res.body.meta.limit, 'number');
   assert.equal(typeof res.body.meta.total, 'number');
@@ -48,7 +70,6 @@ test('GET /api/products?page=2&limit=3 - hỗ trợ phân trang page và limit c
   assert.equal(res.body.meta.limit, 3);
 });
 
-// 2. GET chi tiết sản phẩm tồn tại
 test('GET /api/products/:id - lấy chi tiết sản phẩm tồn tại thành công', async () => {
   const res = await request(app).get('/api/products/1');
 
@@ -62,7 +83,6 @@ test('GET /api/products/:id - lấy chi tiết sản phẩm tồn tại thành c
   assert.equal(typeof res.body.data.min_stock, 'number');
 });
 
-// 3. GET sản phẩm không tồn tại
 test('GET /api/products/:id - trả 404 khi sản phẩm không tồn tại', async () => {
   const res = await request(app).get('/api/products/99999');
 
@@ -72,7 +92,6 @@ test('GET /api/products/:id - trả 404 khi sản phẩm không tồn tại', as
   assert.match(res.body.error.message, /Không tìm thấy/);
 });
 
-// 4. ID không hợp lệ
 test('GET /api/products/:id - trả 400 khi ID là chuỗi không phải số nguyên dương', async () => {
   const res = await request(app).get('/api/products/abc');
 
@@ -92,11 +111,304 @@ test('GET /api/products/:id - trả 400 khi ID là số 0 hoặc số âm', asyn
   assert.equal(resNegative.body.error.code, 'VALIDATION_ERROR');
 });
 
-// 5. Database mất kết nối (error handling)
+// ==========================================
+// 2. KIỂM THỬ TẠO MỚI (POST /api/products)
+// ==========================================
+
+test('POST /api/products - thêm sản phẩm mới hợp lệ thành công (quantity = 0)', async () => {
+  const testSku = `TEST_SKU_POST_${Date.now()}`;
+  const res = await request(app)
+    .post('/api/products')
+    .send({
+      sku: testSku,
+      name: 'Bánh mì sandwich bơ tỏi',
+      category_id: 2,
+      price: 28000,
+      min_stock: 12,
+    });
+
+  assert.equal(res.status, 201);
+  assert.equal(res.body.success, true);
+  assert.equal(res.body.data.sku, testSku);
+  assert.equal(res.body.data.name, 'Bánh mì sandwich bơ tỏi');
+  assert.equal(res.body.data.category_id, 2);
+  assert.equal(res.body.data.category_name, 'Bánh kẹo');
+  assert.equal(res.body.data.price, 28000);
+  assert.equal(res.body.data.quantity, 0); // Tồn kho ban đầu luôn là 0 do Inventory quản lý
+  assert.equal(res.body.data.min_stock, 12);
+  assert.ok(res.body.data.id > 0);
+
+  createdProductIds.push(res.body.data.id);
+});
+
+test('POST /api/products - trả 400 khi thiếu tên hoặc tên rỗng', async () => {
+  const resMissing = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_NONAME_${Date.now()}`,
+      price: 10000,
+    });
+  assert.equal(resMissing.status, 400);
+  assert.equal(resMissing.body.error.code, 'VALIDATION_ERROR');
+
+  const resEmpty = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_EMPTY_${Date.now()}`,
+      name: '   ',
+      price: 10000,
+    });
+  assert.equal(resEmpty.status, 400);
+  assert.equal(resEmpty.body.error.code, 'VALIDATION_ERROR');
+});
+
+test('POST /api/products - trả 400 khi thiếu SKU hoặc SKU rỗng', async () => {
+  const res = await request(app)
+    .post('/api/products')
+    .send({
+      name: 'Sản phẩm không có SKU',
+      price: 10000,
+    });
+  assert.equal(res.status, 400);
+  assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+});
+
+test('POST /api/products - trả 409 khi mã SKU bị trùng', async () => {
+  // 'DU-001' đã có trong seed
+  const res = await request(app)
+    .post('/api/products')
+    .send({
+      sku: 'DU-001',
+      name: 'Nước khoáng test trùng',
+      price: 5000,
+    });
+
+  assert.equal(res.status, 409);
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.code, 'DUPLICATE_ENTRY');
+});
+
+test('POST /api/products - trả 400 khi giá âm (price < 0)', async () => {
+  const res = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_NEGPRICE_${Date.now()}`,
+      name: 'Sản phẩm giá âm',
+      price: -5000,
+    });
+
+  assert.equal(res.status, 400);
+  assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+  assert.match(res.body.error.message, /Giá sản phẩm/);
+});
+
+test('POST /api/products - trả 400 khi min_stock âm hoặc không phải số nguyên', async () => {
+  const resNeg = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_NEGMIN_${Date.now()}`,
+      name: 'Sản phẩm tồn tối thiểu âm',
+      price: 10000,
+      min_stock: -2,
+    });
+  assert.equal(resNeg.status, 400);
+  assert.equal(resNeg.body.error.code, 'VALIDATION_ERROR');
+
+  const resFloat = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_FLOATMIN_${Date.now()}`,
+      name: 'Sản phẩm tồn tối thiểu số thực',
+      price: 10000,
+      min_stock: 3.5,
+    });
+  assert.equal(resFloat.status, 400);
+  assert.equal(resFloat.body.error.code, 'VALIDATION_ERROR');
+});
+
+test('POST /api/products - trả 404 khi category_id không tồn tại', async () => {
+  const res = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_BADCAT_${Date.now()}`,
+      name: 'Sản phẩm sai danh mục',
+      category_id: 99999,
+      price: 10000,
+    });
+
+  assert.equal(res.status, 404);
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.code, 'NOT_FOUND');
+  assert.match(res.body.error.message, /Danh mục/);
+});
+
+test('POST /api/products - trả 400 khi kiểu dữ liệu không hợp lệ', async () => {
+  const res = await request(app)
+    .post('/api/products')
+    .send({
+      sku: `TEST_SKU_INVALID_${Date.now()}`,
+      name: 'Sản phẩm giá chữ',
+      price: 'mot-trieu-dong',
+    });
+
+  assert.equal(res.status, 400);
+  assert.equal(res.body.error.code, 'VALIDATION_ERROR');
+});
+
+// ==========================================
+// 3. KIỂM THỬ CẬP NHẬT (PUT /api/products/:id)
+// ==========================================
+
+test('PUT /api/products/:id - cập nhật sản phẩm hợp lệ thành công', async () => {
+  // Tạo sản phẩm test riêng
+  const initialSku = `TEST_SKU_PUT_${Date.now()}`;
+  const createRes = await request(app)
+    .post('/api/products')
+    .send({
+      sku: initialSku,
+      name: 'Sản phẩm ban đầu',
+      price: 15000,
+      min_stock: 5,
+    });
+
+  const productId = createRes.body.data.id;
+  createdProductIds.push(productId);
+
+  const updatedSku = `${initialSku}_EDIT`;
+  const res = await request(app)
+    .put(`/api/products/${productId}`)
+    .send({
+      sku: updatedSku,
+      name: 'Sản phẩm đã cập nhật',
+      price: 22000,
+      min_stock: 8,
+      category_id: 1,
+    });
+
+  assert.equal(res.status, 200);
+  assert.equal(res.body.success, true);
+  assert.equal(res.body.data.id, productId);
+  assert.equal(res.body.data.sku, updatedSku);
+  assert.equal(res.body.data.name, 'Sản phẩm đã cập nhật');
+  assert.equal(res.body.data.price, 22000);
+  assert.equal(res.body.data.min_stock, 8);
+  assert.equal(res.body.data.category_id, 1);
+});
+
+test('PUT /api/products/:id - trả 404 khi ID không tồn tại', async () => {
+  const res = await request(app)
+    .put('/api/products/99999')
+    .send({ name: 'Tên không quan trọng' });
+
+  assert.equal(res.status, 404);
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.code, 'NOT_FOUND');
+});
+
+test('PUT /api/products/:id - trả 409 khi đổi SKU thành SKU đã tồn tại', async () => {
+  const testSku = `TEST_SKU_DUP_${Date.now()}`;
+  const createRes = await request(app)
+    .post('/api/products')
+    .send({
+      sku: testSku,
+      name: 'Sản phẩm test trùng SKU',
+      price: 10000,
+    });
+
+  const productId = createRes.body.data.id;
+  createdProductIds.push(productId);
+
+  // Thử đổi sang 'DU-001' (đã có trong seed)
+  const res = await request(app)
+    .put(`/api/products/${productId}`)
+    .send({ sku: 'DU-001' });
+
+  assert.equal(res.status, 409);
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.code, 'DUPLICATE_ENTRY');
+});
+
+test('PUT /api/products/:id - thay đổi thông tin mà không làm sai quantity', async () => {
+  // Sản phẩm 1 'DU-001' có quantity = 30 trong seed
+  const detailBefore = await request(app).get('/api/products/1');
+  const initialQty = detailBefore.body.data.quantity;
+
+  const res = await request(app)
+    .put('/api/products/1')
+    .send({
+      name: 'Nước suối 500ml (Cập nhật bao bì mới)',
+      price: 5500,
+      quantity: 9999, // Thử truyền quantity khác, hệ thống phải phớt lờ và giữ nguyên
+    });
+
+  assert.equal(res.status, 200);
+  assert.equal(res.body.data.name, 'Nước suối 500ml (Cập nhật bao bì mới)');
+  assert.equal(res.body.data.price, 5500);
+  assert.equal(res.body.data.quantity, initialQty); // Quantity vẫn là 30, không bị đổi thành 9999
+});
+
+// ==========================================
+// 4. KIỂM THỬ XÓA (DELETE /api/products/:id)
+// ==========================================
+
+test('DELETE /api/products/:id - xóa sản phẩm không có lịch sử giao dịch thành công (200)', async () => {
+  const testSku = `TEST_SKU_DEL_${Date.now()}`;
+  const createRes = await request(app)
+    .post('/api/products')
+    .send({
+      sku: testSku,
+      name: 'Sản phẩm để xóa',
+      price: 10000,
+    });
+
+  const productId = createRes.body.data.id;
+
+  const res = await request(app).delete(`/api/products/${productId}`);
+
+  assert.equal(res.status, 200);
+  assert.equal(res.body.success, true);
+  assert.equal(res.body.data.id, productId);
+
+  // Xác minh không còn trong DB
+  const checkRes = await request(app).get(`/api/products/${productId}`);
+  assert.equal(checkRes.status, 404);
+});
+
+test('DELETE /api/products/:id - chặn xóa sản phẩm đã có lịch sử giao dịch (409 IN_USE)', async () => {
+  // Sản phẩm 1 'DU-001' có 2 phiếu trong stock_transaction_items
+  const res = await request(app).delete('/api/products/1');
+
+  assert.equal(res.status, 409);
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.code, 'IN_USE');
+  assert.match(res.body.error.message, /giao dịch xuất\/nhập kho/);
+});
+
+test('DELETE /api/products/:id - trả 404 khi xóa ID không tồn tại', async () => {
+  const res = await request(app).delete('/api/products/99999');
+
+  assert.equal(res.status, 404);
+  assert.equal(res.body.success, false);
+  assert.equal(res.body.error.code, 'NOT_FOUND');
+});
+
+test('Kiểm tra ID không hợp lệ trên PUT và DELETE trả 400', async () => {
+  const resPut = await request(app).put('/api/products/invalid-id').send({ name: 'A' });
+  assert.equal(resPut.status, 400);
+  assert.equal(resPut.body.error.code, 'VALIDATION_ERROR');
+
+  const resDel = await request(app).delete('/api/products/0');
+  assert.equal(resDel.status, 400);
+  assert.equal(resDel.body.error.code, 'VALIDATION_ERROR');
+});
+
+// ==========================================
+// 5. KIỂM THỬ XỬ LÝ LỖI HỆ THỐNG
+// ==========================================
+
 test('GET /api/products - trả 500 khi database mất kết nối hoặc truy vấn lỗi', async () => {
   const originalQuery = db.query;
   try {
-    // Giả lập lỗi mất kết nối database
     db.query = async () => {
       const err = new Error('Connection lost: The server closed the connection.');
       err.code = 'PROTOCOL_CONNECTION_LOST';
@@ -108,7 +420,6 @@ test('GET /api/products - trả 500 khi database mất kết nối hoặc truy v
     assert.equal(res.body.success, false);
     assert.equal(res.body.error.code, 'INTERNAL_ERROR');
   } finally {
-    // Khôi phục lại hàm query thật
     db.query = originalQuery;
   }
 });
