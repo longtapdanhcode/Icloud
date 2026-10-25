@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Danh sách Danh mục - Cloud Inventory</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/products-admin.css">
+</head>
+<body>
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="admin-wrapper">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <a href="/products.html" class="sidebar-brand">
+        <div class="brand-icon">
+          <i class="bi bi-boxes"></i>
+        </div>
+        <div>
+          <div>Cloud Inventory</div>
+          <div style="font-size: 0.7rem; font-weight: 400; color: #94a3b8;">Phân hệ Sản phẩm & Kho</div>
+        </div>
+      </a>
+
+      <ul class="sidebar-menu">
+        <li class="menu-header">QUẢN LÝ DANH MỤC & SẢN PHẨM (NGƯỜI 1)</li>
+        <li class="menu-item">
+          <a href="/products.html" class="menu-link">
+            <i class="bi bi-box-seam"></i>
+            <span>Sản phẩm</span>
+            <span class="badge bg-secondary rounded-pill">10</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/product-form.html" class="menu-link">
+            <i class="bi bi-plus-circle"></i>
+            <span>Thêm sản phẩm</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/categories.html" class="menu-link active">
+            <i class="bi bi-tags"></i>
+            <span>Danh mục</span>
+            <span class="badge bg-primary rounded-pill">4</span>
+          </a>
+        </li>
+        <li class="menu-item">
+          <a href="/category-form.html" class="menu-link">
+            <i class="bi bi-folder-plus"></i>
+            <span>Thêm danh mục</span>
+          </a>
+        </li>
+
+        <li class="menu-header">CÁC PHÂN HỆ KHÁC</li>
+        <li class="menu-item">
+          <a href="/index.html" class="menu-link">
+            <i class="bi bi-activity"></i>
+            <span>Kiểm tra hệ thống</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <div class="d-flex align-items-center gap-2">
+          <div class="avatar-badge bg-primary text-white">QT</div>
+          <div class="text-truncate">
+            <div class="small fw-bold text-white">Quản trị viên</div>
+            <div class="text-white-50 small" style="font-size: 0.75rem;">admin@inventory.local</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main">
+      <!-- Navbar Header -->
+      <header class="admin-navbar">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-sm btn-outline-secondary d-lg-none" id="sidebarToggle" type="button" aria-label="Menu">
+            <i class="bi bi-list fs-5"></i>
+          </button>
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 small">
+              <li class="breadcrumb-item"><a href="/products.html" class="text-decoration-none text-muted">Trang chủ</a></li>
+              <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Quản lý danh mục</li>
+            </ol>
+          </nav>
+        </div>
+
+        <div class="navbar-user">
+          <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+            <i class="bi bi-shield-check me-1"></i>ADMIN
+          </span>
+          <a href="/category-form.html" class="btn btn-primary-modern btn-sm">
+            <i class="bi bi-plus-lg"></i>
+            <span>Thêm danh mục</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <main class="page-content">
+        <!-- Mock Notice Banner -->
+        <div class="mock-notice-banner">
+          <div class="d-flex align-items-center gap-2">
+            <span class="mock-notice-pill">MOCK DATA</span>
+            <span>
+              <strong>Giao diện mẫu tĩnh (Người 1):</strong> Danh sách nhóm phân loại theo bảng <code>categories</code>. Chưa thực hiện gọi API CRUD thật.
+            </span>
+          </div>
+          <span class="badge bg-warning-subtle text-dark border border-warning-subtle d-none d-md-inline-block">
+            Phạm vi Người 1
+          </span>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-md-4">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small fw-medium">Tổng số danh mục</div>
+                  <div class="fs-3 fw-bold text-dark mt-1" id="statTotalCategories">--</div>
+                  <div class="text-success small mt-1"><i class="bi bi-check2-circle me-1"></i> Đang hoạt động</div>
+                </div>
+                <div class="stat-icon primary">
+                  <i class="bi bi-tags"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-md-4">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small fw-medium">Tổng sản phẩm đã phân loại</div>
+                  <div class="fs-3 fw-bold text-primary mt-1" id="statTotalCatProducts">--</div>
+                  <div class="text-muted small mt-1"><i class="bi bi-link-45deg me-1"></i> Khóa ngoại foreign key</div>
+                </div>
+                <div class="stat-icon success">
+                  <i class="bi bi-diagram-3"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-md-4">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="text-muted small fw-medium">Phân quyền thao tác</div>
+                  <div class="fs-6 fw-bold text-dark mt-1">Chỉ Quản trị viên (ADMIN)</div>
+                  <div class="text-muted small mt-1"><i class="bi bi-lock me-1 text-warning"></i> Nhân viên chỉ có quyền xem</div>
+                </div>
+                <div class="stat-icon warning">
+                  <i class="bi bi-shield-lock"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="content-card">
+          <div class="content-card-body">
+            <div class="row g-2 align-items-center justify-content-between">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                  <input type="text" class="form-control border-start-0 ps-0" id="categorySearchInput" placeholder="Tìm theo tên danh mục hoặc mô tả...">
+                </div>
+              </div>
+              <div class="col-md-4 text-md-end">
+                <a href="/category-form.html" class="btn btn-outline-primary btn-sm">
+                  <i class="bi bi-plus-circle me-1"></i> Tạo danh mục mới
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Category Table Card -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <div class="d-flex align-items-center gap-2">
+              <h2 class="h6 mb-0 fw-bold">Danh sách các danh mục hàng hóa</h2>
+              <span class="badge bg-secondary-subtle text-secondary rounded-pill px-2" id="categoryResultCount">4</span>
+            </div>
+            <div class="small text-muted">
+              Dữ liệu mẫu từ <code>seed.js</code>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-modern align-middle">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th style="width: 120px;">Mã nhóm</th>
+                  <th style="width: 200px;">Tên danh mục</th>
+                  <th>Mô tả chi tiết</th>
+                  <th style="width: 160px;" class="text-center">Sản phẩm liên kết</th>
+                  <th style="width: 100px;" class="text-end">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody id="categoryTableBody">
+                <!-- Dynamically populated by categories-ui.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Delete Modal Demo -->
+  <div class="modal fade" id="deleteDemoCatModal" tabindex="-1" aria-labelledby="deleteDemoCatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow">
+        <div class="modal-header border-0 pb-0">
+          <h5 class="modal-title text-danger fs-6 fw-bold" id="deleteDemoCatModalLabel">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>Xác nhận xóa danh mục (Demo)
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body py-3">
+          <p class="mb-2">Bạn có chắc chắn muốn xóa danh mục sau?</p>
+          <div class="p-2 bg-light rounded border fw-semibold text-dark mb-3" id="deleteCatTargetName">--</div>
+          <div id="deleteCatWarningText"></div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+          <button type="button" class="btn btn-danger btn-sm" data-bs-dismiss="modal" onclick="alert('Đã kích hoạt thao tác demo xóa danh mục.')">Xác nhận xóa (Mẫu)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/products-mock-data.js"></script>
+  <script src="/js/categories-ui.js"></script>
+</body>
+</html>
