@@ -101,36 +101,28 @@
 
       <!-- Page Content -->
       <main class="page-content">
-        <!-- Mock Notice Banner -->
-        <div class="mock-notice-banner">
-          <div class="d-flex align-items-center gap-2">
-            <span class="mock-notice-pill">MOCK DATA</span>
-            <span>
-              <strong>Giao diện mẫu tĩnh (Người 1):</strong> Mẫu form nhập liệu sản phẩm theo schema chuẩn (SKU, Tên, Danh mục, Đơn giá, Tồn kho ban đầu, Tồn tối thiểu).
+        <!-- Live Connection Status Alert -->
+        <div class="alert alert-light border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3" role="status">
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fs-6">
+              <i class="bi bi-hdd-network me-1"></i>MySQL Live
             </span>
+            <div>
+              <div class="fw-semibold text-dark">Phân hệ Quản lý Sản phẩm (Người 1)</div>
+              <div class="small text-muted">Dữ liệu được cập nhật trực tiếp vào cơ sở dữ liệu MySQL qua REST API (POST/PUT /api/products).</div>
+            </div>
           </div>
-          <span class="badge bg-warning-subtle text-dark border border-warning-subtle d-none d-md-inline-block" id="modeBadge">
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle d-none d-md-inline-block" id="modeBadge">
             Chế độ Thêm mới
           </span>
-        </div>
-
-        <!-- Mode Switcher Quick Bar for Reviewing Designs -->
-        <div class="card border-0 shadow-sm mb-4 bg-white">
-          <div class="card-body py-2 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-            <div class="small text-muted">
-              <i class="bi bi-eye me-1"></i> Chuyển đổi nhanh chế độ xem trước giao diện:
-            </div>
-            <div class="btn-group btn-group-sm">
-              <a href="/product-form.html" class="btn btn-outline-primary">Form Thêm mới (Trống)</a>
-              <a href="/product-form.html?mode=edit&id=2" class="btn btn-outline-secondary">Demo Sửa (Coca-Cola - DU-002)</a>
-              <a href="/product-form.html?mode=edit&id=1" class="btn btn-outline-secondary">Demo Sửa (Nước suối - DU-001)</a>
-            </div>
-          </div>
         </div>
 
         <!-- Main Form Card -->
         <div class="row justify-content-center">
           <div class="col-lg-9 col-xl-8">
+            <!-- Global Form Alert Container (Errors/Success) -->
+            <div id="formAlertContainer"></div>
+
             <div class="content-card">
               <div class="content-card-header">
                 <div>
@@ -139,7 +131,15 @@
                 </div>
               </div>
 
-              <div class="content-card-body">
+              <!-- Loading State for Edit Mode Data Fetching -->
+              <div id="formLoadingState" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary" role="status" style="width: 2.5rem; height: 2.5rem;">
+                  <span class="visually-hidden">Đang tải dữ liệu sản phẩm...</span>
+                </div>
+                <div class="mt-3 text-secondary fw-medium">Đang tải thông tin sản phẩm từ máy chủ...</div>
+              </div>
+
+              <div class="content-card-body" id="formContentBody">
                 <form id="productForm" novalidate>
                   <div class="row g-3">
                     <!-- SKU Field -->
@@ -147,18 +147,25 @@
                       <label for="productSku" class="form-label">
                         Mã SKU sản phẩm <span class="text-danger">*</span>
                       </label>
-                      <input type="text" class="form-control font-monospace" id="productSku" placeholder="Ví dụ: DU-004, BK-003" required>
-                      <div class="form-text">Mã định danh duy nhất (Unique SKU) trong hệ thống quản lý.</div>
+                      <input type="text" class="form-control font-monospace" id="productSku" placeholder="Ví dụ: DU-004, BK-003" maxlength="50" required>
+                      <div class="invalid-feedback" id="skuError">
+                        Mã SKU là bắt buộc và không được để trống.
+                      </div>
+                      <div class="form-text" id="skuHelp">Mã định danh duy nhất (Unique SKU), từ 1 đến 50 ký tự.</div>
                     </div>
 
                     <!-- Category Field -->
                     <div class="col-md-6">
                       <label for="productCategory" class="form-label">
-                        Danh mục sản phẩm <span class="text-danger">*</span>
+                        Danh mục sản phẩm
                       </label>
-                      <select class="form-select" id="productCategory" required>
-                        <option value="">-- Chọn danh mục sản phẩm --</option>
+                      <select class="form-select" id="productCategory">
+                        <option value="">-- Chọn danh mục sản phẩm (Tùy chọn) --</option>
+                        <!-- Populated dynamically via GET /api/categories -->
                       </select>
+                      <div class="invalid-feedback" id="categoryError">
+                        Danh mục đã chọn không hợp lệ hoặc không tồn tại.
+                      </div>
                       <div class="form-text">Thuộc tính khóa ngoại liên kết tới bảng <code>categories</code>.</div>
                     </div>
 
@@ -167,8 +174,11 @@
                       <label for="productName" class="form-label">
                         Tên sản phẩm <span class="text-danger">*</span>
                       </label>
-                      <input type="text" class="form-control" id="productName" placeholder="Ví dụ: Cà phê đen đóng lon 240ml" required>
-                      <div class="form-text">Tên mô tả rõ ràng, hỗ trợ tìm kiếm nhanh theo từ khóa.</div>
+                      <input type="text" class="form-control" id="productName" placeholder="Ví dụ: Cà phê đen đóng lon 240ml" maxlength="150" required>
+                      <div class="invalid-feedback" id="nameError">
+                        Tên sản phẩm là bắt buộc và không được để trống.
+                      </div>
+                      <div class="form-text">Tên mô tả rõ ràng, từ 1 đến 150 ký tự.</div>
                     </div>
 
                     <!-- Price Field -->
@@ -177,34 +187,49 @@
                         Đơn giá bán lẻ (VNĐ) <span class="text-danger">*</span>
                       </label>
                       <div class="input-group">
-                        <input type="number" class="form-control text-end fw-semibold" id="productPrice" min="0" step="1000" placeholder="0" required>
+                        <input type="number" class="form-control text-end fw-semibold" id="productPrice" min="0" step="500" placeholder="0" required>
                         <span class="input-group-text bg-light">VNĐ</span>
                       </div>
-                      <div class="form-text">Giá niêm yết bán lẻ, không được là số âm (≥ 0).</div>
-                    </div>
-
-                    <!-- Quantity Field -->
-                    <div class="col-md-3 col-sm-6">
-                      <label for="productQuantity" class="form-label">
-                        Tồn kho ban đầu
-                      </label>
-                      <input type="number" class="form-control text-center fw-semibold" id="productQuantity" min="0" value="0">
-                      <div class="form-text">Số lượng sản phẩm nhập kho ban đầu.</div>
+                      <div class="invalid-feedback" id="priceError">
+                        Giá sản phẩm phải là số không âm (&ge; 0).
+                      </div>
+                      <div class="form-text">Giá niêm yết bán lẻ, không được là số âm (&ge; 0).</div>
                     </div>
 
                     <!-- Min Stock Field -->
-                    <div class="col-md-3 col-sm-6">
+                    <div class="col-md-6">
                       <label for="productMinStock" class="form-label">
-                        Tồn tối thiểu (Cảnh báo) <span class="text-danger">*</span>
+                        Mức tồn tối thiểu (Cảnh báo) <span class="text-danger">*</span>
                       </label>
-                      <input type="number" class="form-control text-center fw-semibold text-warning" id="productMinStock" min="0" value="10" required>
-                      <div class="form-text">Mốc kích hoạt cảnh báo tồn thấp khi tồn ≤ mốc này.</div>
+                      <input type="number" class="form-control text-center fw-semibold text-warning" id="productMinStock" min="0" step="1" value="10" required>
+                      <div class="invalid-feedback" id="minStockError">
+                        Mức tồn tối thiểu phải là số nguyên không âm (&ge; 0).
+                      </div>
+                      <div class="form-text">Mốc kích hoạt cảnh báo tồn thấp khi tồn kho &le; mốc này.</div>
                     </div>
 
-                    <!-- Description / Notes -->
+                    <!-- Quantity Field (Read-only / Protected by Architecture) -->
                     <div class="col-12">
-                      <label for="productDesc" class="form-label">Ghi chú & Quy cách đóng gói</label>
-                      <textarea class="form-control" id="productDesc" rows="3" placeholder="Nhập quy cách (thùng 24 lon, hộp 20 gói), vị trí kệ hàng..."></textarea>
+                      <label for="productQuantity" class="form-label">
+                        Số lượng tồn kho hiện tại (Quản lý bởi phân hệ Kho)
+                      </label>
+                      <div class="input-group">
+                        <input type="number" class="form-control bg-light fw-bold text-center" id="productQuantity" value="0" readonly disabled>
+                        <span class="input-group-text bg-light"><i class="bi bi-lock-fill text-muted"></i></span>
+                      </div>
+                      <div class="form-text text-primary">
+                        <i class="bi bi-info-circle me-1"></i><strong>Quy tắc nghiệp vụ:</strong> Số lượng tồn kho được quản lý và cập nhật thông qua phân hệ Quản lý Kho (Inventory của Người 2) bằng phiếu Nhập/Xuất kho. Không cho phép chỉnh sửa trực tiếp qua API sản phẩm.
+                      </div>
+                    </div>
+
+                    <!-- Note on Permissions -->
+                    <div class="col-12">
+                      <div class="alert alert-info small mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check fs-5"></i>
+                        <div>
+                          Theo quy ước phân quyền hệ thống (Người 3), Quản trị viên (<strong>ADMIN</strong>) và Nhân viên (<strong>STAFF</strong>) đều có quyền thêm và chỉnh sửa thông tin sản phẩm.
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -212,15 +237,17 @@
 
                   <!-- Form Action Buttons -->
                   <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <a href="/products.html" class="btn btn-light px-3">
-                      <i class="bi bi-x me-1"></i> Hủy bỏ
+                    <a href="/products.html" class="btn btn-light px-3" id="cancelBtn">
+                      <i class="bi bi-arrow-left me-1"></i> Hủy bỏ & Quay lại
                     </a>
                     <div class="d-flex gap-2">
-                      <button type="reset" class="btn btn-outline-secondary px-3">
+                      <button type="reset" class="btn btn-outline-secondary px-3" id="resetBtn">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Nhập lại
                       </button>
                       <button type="submit" class="btn btn-primary-modern px-4" id="submitBtn">
-                        <i class="bi bi-floppy me-1"></i> Lưu sản phẩm (Demo)
+                        <span class="spinner-border spinner-border-sm me-1 d-none" id="submitSpinner" role="status"></span>
+                        <i class="bi bi-floppy me-1" id="submitIcon"></i>
+                        <span id="submitText">Lưu sản phẩm</span>
                       </button>
                     </div>
                   </div>
@@ -233,13 +260,13 @@
     </div>
   </div>
 
-  <!-- Toast notification demo -->
-  <div class="toast-container position-fixed bottom-0 end-0 p-3">
-    <div id="demoToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+  <!-- Toast Notification Container -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="appToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
       <div class="d-flex">
-        <div class="toast-body">
-          <i class="bi bi-check-circle-fill me-2"></i>
-          <strong>Giao diện mẫu Người 1:</strong> Form đã kiểm tra hợp lệ. Bước tiếp theo sẽ tích hợp API POST/PUT vào backend.
+        <div class="toast-body d-flex align-items-center gap-2" id="appToastBody">
+          <i class="bi bi-check-circle-fill fs-5"></i>
+          <span id="appToastMessage">Thao tác thành công!</span>
         </div>
         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
       </div>
@@ -247,7 +274,6 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/js/products-mock-data.js"></script>
   <script src="/js/products-ui.js"></script>
 </body>
 </html>
