@@ -34,6 +34,7 @@ Không dùng Docker? Có thể cài MySQL 8 trực tiếp, tạo database `inven
 | `npm run db:migrate` | Tạo bảng theo `db/schema.sql` (không xóa dữ liệu) |
 | `npm run db:seed` | Nạp dữ liệu mẫu (chạy lại không bị trùng) |
 | `npm run db:reset` | **Xóa toàn bộ bảng**, tạo lại và seed (chỉ dùng local) |
+| `BASE_URL=<url> npm run smoke` | Smoke test một môi trường đang chạy (mặc định `http://localhost:3000`) |
 
 ## Cấu trúc
 

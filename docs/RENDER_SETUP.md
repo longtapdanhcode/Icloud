@@ -62,6 +62,34 @@ PR → GitHub Actions chạy test → merge `main` → CI xanh → Render build 
 | Rollback | Render → **Events** → chọn deploy cũ → **Rollback** |
 | Metrics và log MySQL | Aiven → service → **Metrics** / **Logs** |
 | Backup MySQL | Aiven tự backup. Thêm `mysqldump` thủ công ở tuần 4 (RUNBOOK) |
+| Smoke test | GitHub → Actions → **Smoke test (production)** → Run workflow, hoặc `BASE_URL=<domain> npm run smoke` |
+
+### Đọc log
+
+Ở production, mỗi request là một dòng JSON:
+
+```json
+{"level":"warn","type":"request","requestId":"3bdbf1a2-...","method":"POST","path":"/api/auth/login","status":401,"durationMs":53.4,"ip":"...","userId":1}
+```
+
+- Lọc trên Render Logs: gõ `"level":"error"` để xem lỗi, `"status":5` để xem lỗi 5xx, hoặc dán `requestId`.
+- Lỗi 500 trả về cho người dùng có `error.requestId`. Khi có người báo lỗi, xin mã này rồi tìm trong Logs để thấy đúng dòng `"type":"exception"` kèm stack trace.
+- `/health` thành công không được ghi log, vì Render gọi liên tục.
+
+### Smoke test
+
+Workflow `.github/workflows/smoke.yml` chạy lúc 08:00 giờ Việt Nam mỗi ngày, hoặc khi bấm **Run workflow**. Nó kiểm tra: `/health` (app và DB), trang chủ, header bảo mật, chuẩn lỗi 404, `/api/auth/me` khi không có token.
+
+Để smoke test thử cả đăng nhập, thêm 2 secret trong GitHub → Settings → Secrets and variables → Actions:
+`SMOKE_EMAIL`, `SMOKE_PASSWORD` (nên dùng tài khoản STAFF).
+
+Workflow này **không chạy khi push**. Render chỉ deploy khi mọi check của commit xanh: nếu smoke test chờ bản deploy mới thì hai bên sẽ chờ nhau mãi. Sau khi merge, đợi Render deploy xong rồi bấm Run workflow, có thể nhập commit vào ô `expect_version` để chắc chắn đúng bản.
+
+### Bảo mật đã bật
+
+- Giới hạn đăng nhập: tối đa 10 lần mỗi 15 phút cho mỗi IP, lần vượt trả `429 TOO_MANY_REQUESTS`.
+- GitHub secret scanning và push protection: GitHub chặn push có chứa key.
+- CI job `secrets` (gitleaks, cấu hình trong `.gitleaks.toml`): quét các commit của mỗi PR, bắt cả chuỗi kết nối DB có mật khẩu và các dòng `*_SECRET=`, `*_PASSWORD=`.
 
 ## Giới hạn gói Free cần biết
 
