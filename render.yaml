@@ -1,0 +1,29 @@
+# Render Blueprint — Dashboard → New → Blueprint → chọn repo này
+# MySQL không chạy trên Render mà dùng Aiven (xem docs/RENDER_SETUP.md)
+services:
+  - type: web
+    name: cloud-inventory
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    buildCommand: npm ci
+    # Tạo bảng nếu chưa có (không xóa dữ liệu) rồi chạy server
+    startCommand: npm run db:migrate && npm start
+    healthCheckPath: /health
+    # Chỉ deploy khi GitHub Actions (CI) xanh
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      # Các biến dưới đây Render sẽ hỏi khi tạo Blueprint, không lưu trong Git
+      - key: DATABASE_URL
+        sync: false
+      - key: DB_CA_CERT
+        sync: false
