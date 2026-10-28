@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const mysql = require('mysql2/promise');
 const env = require('../src/config/env');
+const { connectionOptions } = require('../src/config/db');
 
 const TABLES_DROP_ORDER = [
   'stock_transaction_items',
@@ -22,7 +23,7 @@ async function main() {
     throw new Error('--reset is not allowed when NODE_ENV=production');
   }
 
-  const conn = await mysql.createConnection({ uri: env.DATABASE_URL, multipleStatements: true });
+  const conn = await mysql.createConnection({ ...connectionOptions(), multipleStatements: true });
   try {
     if (reset) {
       console.log('[migrate] dropping tables...');

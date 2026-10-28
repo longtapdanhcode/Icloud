@@ -1,8 +1,8 @@
 # Cloud Inventory
 
-Hệ thống quản lý sản phẩm và tồn kho cho cửa hàng/doanh nghiệp nhỏ, triển khai trên Railway.
+Hệ thống quản lý sản phẩm và tồn kho cho cửa hàng/doanh nghiệp nhỏ, triển khai trên Render (web) và Aiven (MySQL).
 
-**Stack:** Node.js 22+ • Express 5 • MySQL 8 • Bootstrap • Railway • GitHub Actions
+**Stack:** Node.js 22+ • Express 5 • MySQL 8 • Bootstrap • Render + Aiven MySQL • GitHub Actions
 
 ## Chạy trên máy (khoảng 10 phút)
 
@@ -56,7 +56,7 @@ public/                    # frontend tĩnh (HTML/CSS/JS)
 db/schema.sql              # schema dùng chung
 scripts/                   # migrate.js, seed.js
 tests/                     # node:test + supertest
-docs/                      # quy ước API, hướng dẫn Railway
+docs/                      # quy ước API, hướng dẫn deploy
 ```
 
 Mỗi người chỉ làm trong thư mục module của mình. Router đã được gắn sẵn trong `src/app.js` nên **không cần sửa app.js**, tránh xung đột merge.
@@ -73,10 +73,12 @@ Mỗi người chỉ làm trong thư mục module của mình. Router đã đư�
 2. Commit nhỏ, rõ ràng: `feat(products): add pagination`.
 3. Mỗi ngày cập nhật: `git pull origin main` vào nhánh của mình.
 4. Push và mở Pull Request vào `main`. CI phải xanh và có ít nhất 1 người duyệt.
-5. Merge vào `main` thì Railway tự deploy.
+5. Merge vào `main`, CI xanh thì Render tự deploy.
 
 **Không bao giờ commit `.env`, mật khẩu hoặc key.**
 
 ## Triển khai
 
-Xem [docs/RAILWAY_SETUP.md](docs/RAILWAY_SETUP.md).
+Môi trường chính: **Render + Aiven MySQL**, xem [docs/RENDER_SETUP.md](docs/RENDER_SETUP.md).
+
+Phương án dự phòng: Railway, xem [docs/RAILWAY_SETUP.md](docs/RAILWAY_SETUP.md) (`railway.json` vẫn giữ).
