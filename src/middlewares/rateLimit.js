@@ -1,6 +1,7 @@
 const AppError = require('../utils/AppError');
+const { clientIp } = require('../utils/clientIp');
 
-// Giới hạn số request theo IP trong một khoảng thời gian (lưu trong bộ nhớ).
+// Giới hạn số request theo IP người dùng (xem utils/clientIp.js) trong một khoảng thời gian, lưu trong bộ nhớ.
 // Đủ dùng vì app chạy 1 instance; nếu chạy nhiều instance cần lưu chung (Redis).
 function rateLimit({ windowMs, max, message }) {
   const hits = new Map();
@@ -16,10 +17,11 @@ function rateLimit({ windowMs, max, message }) {
 
   function middleware(req, res, next) {
     const now = Date.now();
-    let entry = hits.get(req.ip);
+    const key = clientIp(req);
+    let entry = hits.get(key);
     if (!entry || entry.resetAt <= now) {
       entry = { count: 0, resetAt: now + windowMs };
-      hits.set(req.ip, entry);
+      hits.set(key, entry);
     }
     entry.count += 1;
 

@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const env = require('../config/env');
+const { clientIp } = require('../utils/clientIp');
 
 // Gắn mã request cho mỗi request: trả về trong header X-Request-Id và có trong log,
 // để khi người dùng báo lỗi chỉ cần gửi mã này là tìm được dòng log tương ứng.
@@ -27,7 +28,7 @@ function jsonRequestLogger(req, res, next) {
       path: req.originalUrl,
       status: res.statusCode,
       durationMs: Number((Number(process.hrtime.bigint() - start) / 1e6).toFixed(1)),
-      ip: req.ip,
+      ip: clientIp(req),
       userId: req.user?.id,
       userAgent: req.get('user-agent'),
     };

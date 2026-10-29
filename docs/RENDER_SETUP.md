@@ -88,6 +88,7 @@ Workflow này **không chạy khi push**. Render chỉ deploy khi mọi check c�
 ### Bảo mật đã bật
 
 - Giới hạn đăng nhập: tối đa 10 lần mỗi 15 phút cho mỗi IP, lần vượt trả `429 TOO_MANY_REQUESTS`.
+  - IP người dùng lấy từ header `CF-Connecting-IP` do Cloudflare (đứng trước Render) đặt, vì `req.ip` trên Render chỉ là IP của proxy và thay đổi theo từng request. Chỉ tin header này khi chạy trên Render (`RENDER=true`). Đặt `TRUST_CF_CONNECTING_IP=false` để tắt, hoặc `=true` để bật ở nơi khác có Cloudflare phía trước.
 - GitHub secret scanning và push protection: GitHub chặn push có chứa key.
 - CI job `secrets` (gitleaks, cấu hình trong `.gitleaks.toml`): quét các commit của mỗi PR, bắt cả chuỗi kết nối DB có mật khẩu và các dòng `*_SECRET=`, `*_PASSWORD=`.
 
