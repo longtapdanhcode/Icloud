@@ -63,3 +63,16 @@ test('lỗi 500 trả requestId trùng với header để tra log', async (t) =>
   assert.equal(res.body.error.code, 'INTERNAL_ERROR');
   assert.equal(res.body.error.requestId, res.headers['x-request-id']);
 });
+
+test('clientIp: chỉ dùng CF-Connecting-IP khi được phép tin Cloudflare', () => {
+  const { clientIp } = require('../src/utils/clientIp');
+  const req = (headers) => ({ ip: '10.0.0.1', get: (name) => headers[name.toLowerCase()] });
+
+  assert.equal(clientIp(req({ 'cf-connecting-ip': '203.0.113.7' }), { trustCf: true }), '203.0.113.7');
+  assert.equal(clientIp(req({ 'cf-connecting-ip': '2001:db8::1' }), { trustCf: true }), '2001:db8::1');
+  // Không tin Cloudflare (local/test/Railway): bỏ qua header client tự gửi
+  assert.equal(clientIp(req({ 'cf-connecting-ip': '203.0.113.7' }), { trustCf: false }), '10.0.0.1');
+  // Giá trị không phải IP hợp lệ thì bỏ qua
+  assert.equal(clientIp(req({ 'cf-connecting-ip': 'not-an-ip' }), { trustCf: true }), '10.0.0.1');
+  assert.equal(clientIp(req({}), { trustCf: true }), '10.0.0.1');
+});
