@@ -8,7 +8,7 @@ services:
     region: singapore
     branch: main
     buildCommand: npm ci
-    # Tạo bảng nếu chưa có (không xóa dữ liệu) rồi chạy server
+    # Chạy migration chưa chạy (không xóa dữ liệu) rồi mới chạy server
     startCommand: npm run db:migrate && npm start
     healthCheckPath: /health
     # Chỉ deploy khi GitHub Actions (CI) xanh
