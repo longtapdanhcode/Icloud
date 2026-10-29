@@ -27,8 +27,8 @@ jobs:
       DATABASE_URL: mysql://inventory:inventory@127.0.0.1:3306/inventory
       JWT_SECRET: ci-secret
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -41,7 +41,7 @@ jobs:
     # Quét mật khẩu/key bị commit nhầm trong các commit của PR hoặc push
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
       - name: gitleaks

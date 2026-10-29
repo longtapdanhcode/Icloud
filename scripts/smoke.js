@@ -4,7 +4,9 @@
 //   SMOKE_EMAIL / SMOKE_PASSWORD   tài khoản để thử đăng nhập và API cần token
 //   EXPECT_VERSION                 7 ký tự commit mong đợi ở /health (kiểm tra đã deploy đúng bản)
 const BASE_URL = (process.env.BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
-const { SMOKE_EMAIL, SMOKE_PASSWORD, EXPECT_VERSION } = process.env;
+const { SMOKE_PASSWORD, EXPECT_VERSION } = process.env;
+// Chuẩn hóa giống server (auth.service): secret dán vào GitHub hay dính dấu cách hoặc chữ hoa
+const SMOKE_EMAIL = process.env.SMOKE_EMAIL?.trim().toLowerCase();
 
 const results = [];
 
@@ -113,7 +115,7 @@ async function main() {
       expect(token, 'bỏ qua vì đăng nhập thất bại');
       const res = await call('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
       expect(res.status === 200, `status ${res.status}`);
-      expect(res.body.data?.email === SMOKE_EMAIL.toLowerCase(), 'sai người dùng');
+      expect(res.body.data?.email === SMOKE_EMAIL, `sai người dùng: ${res.body.data?.email}`);
     });
   } else {
     console.log('(bỏ qua đăng nhập: chưa đặt SMOKE_EMAIL/SMOKE_PASSWORD)');
