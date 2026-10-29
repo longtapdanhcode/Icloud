@@ -12,7 +12,8 @@
     "db:migrate:new": "node scripts/migrate.js new",
     "db:seed": "node scripts/seed.js",
     "db:reset": "node scripts/migrate.js --reset && node scripts/seed.js",
-    "test": "node --test \"tests/**/*.test.js\""
+    "test": "node --test \"tests/**/*.test.js\"",
+    "smoke": "node scripts/smoke.js"
   },
   "engines": {
     "node": ">=22"

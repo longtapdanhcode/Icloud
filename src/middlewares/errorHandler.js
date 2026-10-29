@@ -1,5 +1,6 @@
 const AppError = require('../utils/AppError');
 const env = require('../config/env');
+const { logError } = require('./requestLogger');
 
 function notFound(req, res, next) {
   next(AppError.notFound(`Không tìm thấy ${req.method} ${req.originalUrl}`));
@@ -30,13 +31,17 @@ function errorHandler(err, req, res, next) {
   }
 
   if (!appErr) {
-    console.error(`[error] ${req.method} ${req.originalUrl}`, err);
+    logError(req, err);
     appErr = new AppError(500, 'INTERNAL_ERROR', 'Lỗi hệ thống');
   }
 
   const body = { success: false, error: { code: appErr.code, message: appErr.message } };
   if (appErr.details) body.error.details = appErr.details;
-  if (!env.isProduction && appErr.status === 500) body.error.debug = err.message;
+  if (appErr.status === 500) {
+    // Người dùng gửi mã này khi báo lỗi để tìm đúng dòng log
+    body.error.requestId = req.id;
+    if (!env.isProduction) body.error.debug = err.message;
+  }
 
   res.status(appErr.status).json(body);
 }

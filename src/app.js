@@ -6,11 +6,20 @@ const morgan = require('morgan');
 
 const env = require('./config/env');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
+const { requestId, jsonRequestLogger } = require('./middlewares/requestLogger');
+const { rateLimit } = require('./middlewares/rateLimit');
 
 const app = express();
 
-// Railway đặt app sau proxy, cần để lấy đúng IP client và protocol
+// Render/Railway đặt app sau proxy, cần để lấy đúng IP client và protocol
 app.set('trust proxy', 1);
+
+app.use(requestId);
+if (env.isProduction) {
+  app.use(jsonRequestLogger);
+} else if (!env.isTest) {
+  app.use(morgan('dev'));
+}
 
 app.use(helmet({
   contentSecurityPolicy: {
@@ -23,11 +32,18 @@ app.use(helmet({
 }));
 app.use(cors({ origin: env.CORS_ORIGIN }));
 app.use(express.json({ limit: '1mb' }));
-if (!env.isTest) {
-  app.use(morgan(env.isProduction ? 'combined' : 'dev'));
-}
 
 app.use('/health', require('./modules/health/health.routes'));
+
+// Chống dò mật khẩu: tối đa 10 lần đăng nhập mỗi 15 phút cho một IP.
+// Tắt khi chạy test vì test các module đăng nhập liên tục.
+if (!env.isTest) {
+  app.post('/api/auth/login', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: 'Đăng nhập quá nhiều lần, vui lòng thử lại sau 15 phút',
+  }));
+}
 
 // Mỗi module tự quản lý router của mình; chỉ cần sửa file routes trong module tương ứng
 app.use('/api/auth', require('./modules/auth/auth.routes'));
