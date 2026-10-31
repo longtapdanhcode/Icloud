@@ -83,11 +83,11 @@ loginForm.addEventListener("submit", async function (event) {
     const result = await response.json();
 
     if (!response.ok || result.success === false) {
-      throw new Error(
-        result.message ||
-          result.error?.message ||
-          "Email hoặc mật khẩu không chính xác.",
-      );
+      let msg = result.message || result.error?.message || "Email hoặc mật khẩu không chính xác.";
+      if (msg === "Lỗi hệ thống" || response.status === 500) {
+        msg = "Chưa kết nối được máy chủ cơ sở dữ liệu MySQL. Vui lòng kiểm tra lại dịch vụ database hoặc kết nối mạng.";
+      }
+      throw new Error(msg);
     }
 
     // Backend trả token trong data.
@@ -97,16 +97,23 @@ loginForm.addEventListener("submit", async function (event) {
       throw new Error("Backend không trả về JWT token.");
     }
 
-    // Chỉ dùng sessionStorage cho bản demo/học tập.
-    // Token sẽ bị xóa khi đóng phiên trình duyệt.
-    sessionStorage.setItem("accessToken", data.token);
+    // Lưu token vào localStorage theo quyết định thống nhất chung của nhóm
+    if (window.Api) {
+      window.Api.setToken(data.token);
+    } else {
+      localStorage.setItem("accessToken", data.token);
+    }
 
     // Gọi API /me để lấy thông tin người dùng từ Backend.
     const user = await loadCurrentUser(data.token);
 
     showApp(user);
   } catch (error) {
-    sessionStorage.removeItem("accessToken");
+    if (window.Api) {
+      window.Api.clearToken();
+    } else {
+      localStorage.removeItem("accessToken");
+    }
     showLogin();
     showMessage(error.message || "Không thể kết nối máy chủ.");
   } finally {
@@ -117,7 +124,11 @@ loginForm.addEventListener("submit", async function (event) {
 
 // Xử lý đăng xuất.
 logoutButton.addEventListener("click", function () {
-  sessionStorage.removeItem("accessToken");
+  if (window.Api) {
+    window.Api.clearToken();
+  } else {
+    localStorage.removeItem("accessToken");
+  }
   loginForm.reset();
   loginMessage.classList.add("d-none");
   showLogin();
@@ -125,7 +136,15 @@ logoutButton.addEventListener("click", function () {
 
 // Khôi phục giao diện khi tải lại trang nếu token vẫn hợp lệ.
 async function initAuth() {
-  const token = sessionStorage.getItem("accessToken");
+  const urlParams = new URLSearchParams(window.location.search);
+  const reason = urlParams.get("reason");
+  if (reason === "expired") {
+    showMessage("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+  } else if (reason === "unauthenticated") {
+    showMessage("Vui lòng đăng nhập để tiếp tục.");
+  }
+
+  const token = window.Api ? window.Api.getToken() : localStorage.getItem("accessToken");
 
   if (!token) {
     showLogin();
@@ -136,7 +155,11 @@ async function initAuth() {
     const user = await loadCurrentUser(token);
     showApp(user);
   } catch (error) {
-    sessionStorage.removeItem("accessToken");
+    if (window.Api) {
+      window.Api.clearToken();
+    } else {
+      localStorage.removeItem("accessToken");
+    }
     showLogin();
   }
 }
