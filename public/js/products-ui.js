@@ -14,6 +14,13 @@
 // =============================================================================
 // 1. API SERVICE LAYER
 // =============================================================================
+function getApiHeaders(customHeaders = {}) {
+  if (typeof window !== 'undefined' && window.AdminAuth && typeof window.AdminAuth.getHeaders === 'function') {
+    return window.AdminAuth.getHeaders(customHeaders);
+  }
+  return { 'Accept': 'application/json', ...customHeaders };
+}
+
 const ProductApi = {
   baseUrl: '/api/products',
 
@@ -33,9 +40,7 @@ const ProductApi = {
     const url = `${this.baseUrl}?${params.toString()}`;
     const options = {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     };
     if (signal) options.signal = signal;
 
@@ -61,9 +66,7 @@ const ProductApi = {
   async getById(id) {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     });
     const result = await res.json();
     if (!res.ok) {
@@ -81,10 +84,9 @@ const ProductApi = {
   async create(payload) {
     const res = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: {
+      headers: getApiHeaders({
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      }),
       body: JSON.stringify(payload),
     });
     const result = await res.json();
@@ -103,10 +105,9 @@ const ProductApi = {
   async update(id, payload) {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: {
+      headers: getApiHeaders({
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      }),
       body: JSON.stringify(payload),
     });
     const result = await res.json();
@@ -125,9 +126,7 @@ const ProductApi = {
   async delete(id) {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     });
     const result = await res.json();
     if (!res.ok) {
@@ -149,9 +148,7 @@ const CategoryApi = {
   async list() {
     const res = await fetch(this.baseUrl, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     });
     const result = await res.json();
     if (!res.ok) {

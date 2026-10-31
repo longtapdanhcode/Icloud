@@ -13,6 +13,13 @@
 // =============================================================================
 // 1. API SERVICE LAYER
 // =============================================================================
+function getApiHeaders(customHeaders = {}) {
+  if (typeof window !== 'undefined' && window.AdminAuth && typeof window.AdminAuth.getHeaders === 'function') {
+    return window.AdminAuth.getHeaders(customHeaders);
+  }
+  return { 'Accept': 'application/json', ...customHeaders };
+}
+
 const CategoryApi = {
   baseUrl: '/api/categories',
 
@@ -22,9 +29,7 @@ const CategoryApi = {
   async list() {
     const res = await fetch(this.baseUrl, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     });
     const result = await res.json();
     if (!res.ok) {
@@ -42,9 +47,7 @@ const CategoryApi = {
   async getById(id) {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     });
     const result = await res.json();
     if (!res.ok) {
@@ -62,10 +65,9 @@ const CategoryApi = {
   async create(payload) {
     const res = await fetch(this.baseUrl, {
       method: 'POST',
-      headers: {
+      headers: getApiHeaders({
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      }),
       body: JSON.stringify(payload),
     });
     const result = await res.json();
@@ -84,10 +86,9 @@ const CategoryApi = {
   async update(id, payload) {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: {
+      headers: getApiHeaders({
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
+      }),
       body: JSON.stringify(payload),
     });
     const result = await res.json();
@@ -106,9 +107,7 @@ const CategoryApi = {
   async delete(id) {
     const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'DELETE',
-      headers: {
-        'Accept': 'application/json',
-      },
+      headers: getApiHeaders(),
     });
     const result = await res.json();
     if (!res.ok) {
