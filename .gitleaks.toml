@@ -1,0 +1,23 @@
+# Cấu hình gitleaks: dùng bộ luật mặc định + luật riêng cho dự án
+[extend]
+useDefault = true
+
+# Chuỗi kết nối DB có mật khẩu, ví dụ Service URI của Aiven
+[[rules]]
+id = "database-url-with-password"
+description = "Database connection string with embedded password"
+regex = '''(?i)\b(?:mysql|mariadb|postgres(?:ql)?|mongodb(?:\+srv)?|redis)://[^:\s/'"@]+:([^@\s'"]{6,})@[^\s'"]+'''
+secretGroup = 1
+[[rules.allowlists]]
+# Tài khoản Docker local và ví dụ trong tài liệu/test
+regexes = ['''^(inventory|root|p|password|<[^>]*>)$''']
+
+# Biến môi trường kiểu KEY=giá trị trong file .env bị commit nhầm
+[[rules]]
+id = "env-file-secret"
+description = "Secret assigned in an env-style file"
+regex = '''(?m)^\s*(?:export\s+)?[A-Z0-9_]*(?:SECRET|PASSWORD|TOKEN|API_KEY|PRIVATE_KEY)[A-Z0-9_]*\s*=\s*['"]?([^\s'"#]{8,})'''
+secretGroup = 1
+[[rules.allowlists]]
+regexes = ['''^(change-me|ci-secret|<)''']
+paths = ['''\.env\.example$''', '''\.md$''']

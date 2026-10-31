@@ -8,9 +8,12 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "db:migrate": "node scripts/migrate.js",
+    "db:migrate:status": "node scripts/migrate.js status",
+    "db:migrate:new": "node scripts/migrate.js new",
     "db:seed": "node scripts/seed.js",
     "db:reset": "node scripts/migrate.js --reset && node scripts/seed.js",
-    "test": "node --test \"tests/**/*.test.js\""
+    "test": "node --test \"tests/**/*.test.js\"",
+    "smoke": "node scripts/smoke.js"
   },
   "engines": {
     "node": ">=22"
@@ -21,6 +24,7 @@
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
     "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
     "morgan": "^1.12.1",
     "mysql2": "^3.24.6"
   },

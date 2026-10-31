@@ -27,8 +27,8 @@ jobs:
       DATABASE_URL: mysql://inventory:inventory@127.0.0.1:3306/inventory
       JWT_SECRET: ci-secret
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -36,3 +36,22 @@ jobs:
       - run: npm run db:migrate
       - run: npm run db:seed
       - run: npm test
+
+  secrets:
+    # Quét mật khẩu/key bị commit nhầm trong các commit của PR hoặc push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            RANGE="${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }}"
+          else
+            RANGE="${{ github.event.before }}..${{ github.sha }}"
+            # Push đầu tiên của nhánh không có commit trước đó: quét toàn bộ
+            if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then RANGE="${{ github.sha }}"; fi
+          fi
+          docker run --rm -v "$PWD:/repo" zricethezav/gitleaks:v8.24.3 \
+            git /repo --log-opts="$RANGE" --redact --no-banner --exit-code 1
