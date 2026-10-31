@@ -572,20 +572,20 @@ function initProductListPage() {
 
       return `
         <tr>
-          <td class="text-secondary small fw-medium">${startIndex + idx + 1}</td>
-          <td><span class="badge bg-light text-dark font-monospace border">${escapedSku}</span></td>
+          <td class="text-secondary small col-num" style="width: 44px;">${startIndex + idx + 1}</td>
+          <td><span class="col-sku">${escapedSku}</span></td>
           <td>
             <div class="fw-semibold text-dark">${escapedName}</div>
             <div class="small text-muted d-block d-md-none">${p.category_name || 'Chưa phân loại'}</div>
           </td>
           <td>${escapedCat}</td>
-          <td class="fw-bold text-end">${formatCurrency(p.price)}</td>
-          <td class="text-center">
-            <span class="fw-bold ${qty <= minStock ? 'text-danger' : 'text-dark'}">${qty.toLocaleString('vi-VN')}</span>
-            <span class="text-muted small">/ min ${minStock}</span>
+          <td class="fw-semibold text-end col-num">${formatCurrency(p.price)}</td>
+          <td class="text-center col-num">
+            <span class="fw-bold ${qty === 0 ? 'text-danger' : qty <= minStock ? 'text-warning' : 'text-dark'}">${qty.toLocaleString('vi-VN')}</span>
+            <span class="text-muted small">/ ${minStock}</span>
           </td>
           <td class="text-center">${statusBadge}</td>
-          <td class="small text-secondary">${formatDate(p.created_at)}</td>
+          <td class="small text-secondary col-num">${formatDate(p.created_at)}</td>
           <td class="text-end">${actionButtons}</td>
         </tr>
       `;

@@ -122,49 +122,43 @@
         <div class="row g-3 mb-4">
           <div class="col-sm-6 col-md-4">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Tổng số danh mục</div>
-                  <div class="fs-3 fw-bold text-dark mt-1" id="statTotalCategories">
-                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                  </div>
-                  <div class="text-success small mt-1"><i class="bi bi-check2-circle me-1"></i> Đang hoạt động</div>
-                </div>
-                <div class="stat-icon primary">
-                  <i class="bi bi-tags"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Tổng số danh mục</span>
+                <i class="bi bi-tags text-secondary fs-6"></i>
+              </div>
+              <div class="stat-value" id="statTotalCategories">
+                <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+              </div>
+              <div class="stat-footer text-success">
+                <i class="bi bi-check2-circle"></i> Đang hoạt động
               </div>
             </div>
           </div>
 
           <div class="col-sm-6 col-md-4">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Tổng sản phẩm đã phân loại</div>
-                  <div class="fs-3 fw-bold text-primary mt-1" id="statTotalCatProducts">
-                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                  </div>
-                  <div class="text-muted small mt-1"><i class="bi bi-link-45deg me-1"></i> Khóa ngoại foreign key</div>
-                </div>
-                <div class="stat-icon success">
-                  <i class="bi bi-diagram-3"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Sản phẩm liên kết</span>
+                <i class="bi bi-diagram-3 text-secondary fs-6"></i>
+              </div>
+              <div class="stat-value" id="statTotalCatProducts">
+                <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+              </div>
+              <div class="stat-footer text-muted">
+                <i class="bi bi-link-45deg"></i> Ràng buộc khóa ngoại
               </div>
             </div>
           </div>
 
           <div class="col-sm-12 col-md-4">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Phân quyền thao tác</div>
-                  <div class="fs-6 fw-bold text-dark mt-1" id="authRoleIndicator">Quản trị viên (ADMIN)</div>
-                  <div class="text-muted small mt-1"><i class="bi bi-shield-lock me-1 text-warning"></i> ADMIN toàn quyền, STAFF chỉ xem</div>
-                </div>
-                <div class="stat-icon warning">
-                  <i class="bi bi-shield-lock"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Phân quyền thao tác</span>
+                <i class="bi bi-shield-lock text-secondary fs-6"></i>
+              </div>
+              <div class="stat-value" id="authRoleIndicator" style="font-size: 1.125rem;">Quản trị viên (ADMIN)</div>
+              <div class="stat-footer text-muted">
+                <i class="bi bi-shield-check"></i> ADMIN toàn quyền, STAFF chỉ xem
               </div>
             </div>
           </div>

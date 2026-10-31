@@ -122,68 +122,60 @@
         <div class="row g-3 mb-4">
           <div class="col-sm-6 col-xl-3">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Tổng sản phẩm (Toàn kho)</div>
-                  <div class="fs-3 fw-bold text-dark mt-1" id="statTotalProducts">
-                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                  </div>
-                  <div class="text-muted small mt-1" id="statCatCountSub"><i class="bi bi-box me-1 text-primary"></i> <span id="statCategoryCount">--</span> danh mục</div>
-                </div>
-                <div class="stat-icon primary">
-                  <i class="bi bi-box-seam"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Tổng sản phẩm</span>
+                <i class="bi bi-box-seam text-secondary fs-6"></i>
+              </div>
+              <div class="stat-value" id="statTotalProducts">
+                <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+              </div>
+              <div class="stat-footer" id="statCatCountSub">
+                <i class="bi bi-tags"></i> <span id="statCategoryCount">--</span> danh mục liên kết
               </div>
             </div>
           </div>
 
           <div class="col-sm-6 col-xl-3">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Cảnh báo tồn thấp (Trang này)</div>
-                  <div class="fs-3 fw-bold text-warning mt-1" id="statLowStock">
-                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                  </div>
-                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-triangle me-1"></i> Tồn kho &le; mức tối thiểu</div>
-                </div>
-                <div class="stat-icon warning">
-                  <i class="bi bi-exclamation-triangle"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Cảnh báo tồn thấp</span>
+                <i class="bi bi-exclamation-triangle text-warning fs-6"></i>
+              </div>
+              <div class="stat-value text-warning" id="statLowStock">
+                <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+              </div>
+              <div class="stat-footer text-warning">
+                <i class="bi bi-arrow-down-right"></i> Tồn kho &le; mức tối thiểu
               </div>
             </div>
           </div>
 
           <div class="col-sm-6 col-xl-3">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Hết hàng tồn kho (Trang này)</div>
-                  <div class="fs-3 fw-bold text-danger mt-1" id="statOutOfStock">
-                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                  </div>
-                  <div class="text-muted small mt-1"><i class="bi bi-slash-circle me-1"></i> Số lượng tồn = 0</div>
-                </div>
-                <div class="stat-icon danger">
-                  <i class="bi bi-slash-circle"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Hết hàng tồn kho</span>
+                <i class="bi bi-slash-circle text-danger fs-6"></i>
+              </div>
+              <div class="stat-value text-danger" id="statOutOfStock">
+                <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+              </div>
+              <div class="stat-footer text-muted">
+                <i class="bi bi-dash-circle"></i> Số lượng tồn = 0
               </div>
             </div>
           </div>
 
           <div class="col-sm-6 col-xl-3">
             <div class="stat-card">
-              <div class="d-flex align-items-center justify-content-between">
-                <div>
-                  <div class="text-muted small fw-medium">Giá trị tồn trang này (Ước tính)</div>
-                  <div class="fs-5 fw-bold text-dark mt-1" id="statInventoryValue">
-                    <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
-                  </div>
-                  <div class="text-muted small mt-1"><i class="bi bi-wallet2 me-1 text-success"></i> Theo giá bán lẻ trang</div>
-                </div>
-                <div class="stat-icon success">
-                  <i class="bi bi-wallet2"></i>
-                </div>
+              <div class="stat-header">
+                <span class="stat-title">Giá trị tồn ước tính</span>
+                <i class="bi bi-wallet2 text-secondary fs-6"></i>
+              </div>
+              <div class="stat-value" id="statInventoryValue" style="font-size: 1.25rem;">
+                <span class="spinner-border spinner-border-sm text-secondary" role="status"></span>
+              </div>
+              <div class="stat-footer text-muted">
+                <i class="bi bi-cash-stack"></i> Theo giá bán lẻ trang
               </div>
             </div>
           </div>
