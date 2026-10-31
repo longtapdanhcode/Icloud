@@ -1,0 +1,271 @@
+/* =========================================
+   1. GLOBAL
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f5f6fa;
+    color: #212529;
+}
+
+a {
+    text-decoration: none;
+}
+
+
+/* =========================================
+   2. LOGIN PAGE
+========================================= */
+
+#loginView {
+    background: linear-gradient(135deg, #e8f0ff, #f5f6fa);
+}
+
+#loginView .card {
+    border-radius: 14px;
+}
+
+#loginView h2 {
+    color: #0d6efd;
+}
+
+#loginView .form-control {
+    padding: 11px 12px;
+    border-radius: 8px;
+}
+
+#loginView .btn {
+    padding: 11px;
+    font-weight: 600;
+    border-radius: 8px;
+}
+
+
+/* =========================================
+   3. NAVBAR
+========================================= */
+
+.navbar {
+    min-height: 65px;
+}
+
+.navbar-brand {
+    font-size: 21px;
+    letter-spacing: 0.3px;
+}
+
+#userName {
+    font-size: 14px;
+}
+
+#userEmail,
+#userRole {
+    font-size: 12px;
+    color: #ced4da;
+}
+
+
+/* =========================================
+   4. SIDEBAR
+========================================= */
+
+aside {
+    min-height: calc(100vh - 65px) !important;
+}
+
+aside h6 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+}
+
+.sidebar-link {
+    color: #495057;
+    padding: 11px 14px;
+    border-radius: 8px !important;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.sidebar-link:hover {
+    background-color: #e9ecef;
+    color: #0d6efd;
+}
+
+.sidebar-link.active {
+    background-color: #0d6efd;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+
+/* =========================================
+   5. MAIN CONTENT
+========================================= */
+
+main {
+    background-color: #f5f6fa;
+    min-height: calc(100vh - 65px);
+}
+
+main h3 {
+    color: #212529;
+    font-size: 25px;
+}
+
+main p {
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   6. CARDS
+========================================= */
+
+.card {
+    border-radius: 12px;
+}
+
+.card.shadow-sm {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.shadow-sm:hover {
+    transform: translateY(-2px);
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.card h3 {
+    font-size: 28px;
+    color: #0d6efd;
+}
+
+
+/* =========================================
+   7. FORMS
+========================================= */
+
+.form-label {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 10px 12px;
+}
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+
+form .btn {
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-weight: 600;
+}
+
+
+/* =========================================
+   8. ALERT MESSAGES
+========================================= */
+
+.alert {
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+
+/* =========================================
+   9. BUTTONS
+========================================= */
+
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+}
+
+
+/* =========================================
+   10. RESPONSIVE - TABLET & MOBILE
+========================================= */
+
+@media (max-width: 767.98px) {
+
+    .navbar {
+        padding: 12px !important;
+    }
+
+    .navbar-brand {
+        font-size: 17px;
+    }
+
+    #userEmail {
+        display: none;
+    }
+
+    aside {
+        min-height: auto !important;
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    aside .nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sidebar-link {
+        text-align: center;
+        font-size: 13px;
+    }
+
+    main {
+        min-height: auto;
+        padding: 20px !important;
+    }
+
+    main h3 {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .navbar-brand {
+        font-size: 15px;
+    }
+
+    #userName {
+        font-size: 12px;
+    }
+
+    #logoutButton {
+        font-size: 11px;
+        padding: 5px 8px;
+    }
+
+
+
+}
+
+body {
+    background-color: red !important;
+}
