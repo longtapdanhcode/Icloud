@@ -14,19 +14,11 @@
 // =============================================================================
 // 1. API SERVICE LAYER
 // =============================================================================
-function getApiHeaders(customHeaders = {}) {
-  if (typeof window !== 'undefined' && window.AdminAuth && typeof window.AdminAuth.getHeaders === 'function') {
-    return window.AdminAuth.getHeaders(customHeaders);
-  }
-  return { 'Accept': 'application/json', ...customHeaders };
-}
-
 const ProductApi = {
   baseUrl: '/api/products',
 
   /**
-   * Lấy danh sách sản phẩm có tìm kiếm, lọc, sắp xếp, phân trang
-   * Hỗ trợ AbortSignal để hủy request cũ khi tìm kiếm liên tục (chống race conditions)
+   * Lấy danh sách sản phẩm có tìm kiếm, lọc, sắp xếp, phân trang qua Api.request
    */
   async list({ page = 1, limit = 10, search = '', category_id = '', sort = 'created_at', order = 'desc' } = {}, signal = null) {
     const params = new URLSearchParams();
@@ -38,22 +30,7 @@ const ProductApi = {
     if (order) params.set('order', order);
 
     const url = `${this.baseUrl}?${params.toString()}`;
-    const options = {
-      method: 'GET',
-      headers: getApiHeaders(),
-    };
-    if (signal) options.signal = signal;
-
-    const res = await fetch(url, options);
-    const result = await res.json();
-
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || 'Không thể tải danh sách sản phẩm');
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
-
+    const result = await window.Api.request(url, { signal });
     return {
       items: Array.isArray(result.data) ? result.data : [],
       meta: result.meta || { page, limit, total: 0, totalPages: 1 },
@@ -64,17 +41,7 @@ const ProductApi = {
    * Lấy chi tiết một sản phẩm theo ID
    */
   async getById(id) {
-    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
-      method: 'GET',
-      headers: getApiHeaders(),
-    });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || `Không thể tải thông tin sản phẩm #${id}`);
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
+    const result = await window.Api.request(`${this.baseUrl}/${encodeURIComponent(id)}`);
     return result.data;
   },
 
@@ -82,59 +49,31 @@ const ProductApi = {
    * Thêm sản phẩm mới (quantity tự động đặt là 0)
    */
   async create(payload) {
-    const res = await fetch(this.baseUrl, {
+    const result = await window.Api.request(this.baseUrl, {
       method: 'POST',
-      headers: getApiHeaders({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(payload),
+      body: payload,
     });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || 'Không thể tạo sản phẩm');
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
     return result.data;
   },
 
   /**
-   * Cập nhật thông tin sản phẩm (không gửi quantity)
+   * Cập nhật thông tin sản phẩm
    */
   async update(id, payload) {
-    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
+    const result = await window.Api.request(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: getApiHeaders({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(payload),
+      body: payload,
     });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || `Không thể cập nhật sản phẩm #${id}`);
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
     return result.data;
   },
 
   /**
-   * Xóa sản phẩm theo ID (chặn xóa nếu đã có phát sinh giao dịch kho)
+   * Xóa sản phẩm theo ID
    */
   async delete(id) {
-    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
+    const result = await window.Api.request(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'DELETE',
-      headers: getApiHeaders(),
     });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || `Không thể xóa sản phẩm #${id}`);
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
     return result.data;
   },
 };
@@ -143,17 +82,10 @@ const CategoryApi = {
   baseUrl: '/api/categories',
 
   /**
-   * Lấy danh sách toàn bộ danh mục để hiển thị trong dropdown bộ lọc và form
+   * Lấy danh sách toàn bộ danh mục qua Api.request
    */
   async list() {
-    const res = await fetch(this.baseUrl, {
-      method: 'GET',
-      headers: getApiHeaders(),
-    });
-    const result = await res.json();
-    if (!res.ok) {
-      throw new Error(result?.error?.message || 'Không thể tải danh mục');
-    }
+    const result = await window.Api.request(this.baseUrl);
     return Array.isArray(result.data) ? result.data : [];
   },
 };
@@ -257,33 +189,33 @@ function getCurrentUserRole() {
 // =============================================================================
 // 3. MAIN INITIALIZATION
 // =============================================================================
-document.addEventListener('DOMContentLoaded', function () {
-  // 3.1. Sidebar Toggle cho giao diện Mobile & Tablet
-  const sidebar = document.getElementById('adminSidebar');
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+document.addEventListener('DOMContentLoaded', async function () {
+  // 3.1. Kiểm tra đăng nhập bắt buộc qua Api.requireLogin
+  let currentUser = null;
+  if (window.Api && typeof window.Api.requireLogin === 'function') {
+    try {
+      currentUser = await window.Api.requireLogin({ roles: ['ADMIN', 'STAFF'] });
+    } catch {
+      return; // Đã tự động điều hướng về /index.html nếu chưa đăng nhập
+    }
+  }
 
-  if (sidebarToggle && sidebar) {
-    sidebarToggle.addEventListener('click', function () {
-      sidebar.classList.toggle('show');
-      if (sidebarBackdrop) sidebarBackdrop.classList.toggle('show');
+  // 3.2. Render Layout dùng chung (Sidebar + Navbar)
+  const isFormPage = !!document.getElementById('productForm');
+  if (window.Layout && typeof window.Layout.render === 'function') {
+    window.Layout.render({
+      active: isFormPage ? 'product-form' : 'products',
+      user: currentUser,
     });
   }
 
-  if (sidebarBackdrop) {
-    sidebarBackdrop.addEventListener('click', function () {
-      sidebar.classList.remove('show');
-      sidebarBackdrop.classList.remove('show');
-    });
-  }
-
-  // 3.2. Khởi tạo trang Danh sách Sản phẩm
+  // 3.3. Khởi tạo trang Danh sách Sản phẩm
   const productTableBody = document.getElementById('productTableBody');
   if (productTableBody) {
     initProductListPage();
   }
 
-  // 3.3. Khởi tạo trang Form Thêm / Sửa Sản phẩm
+  // 3.4. Khởi tạo trang Form Thêm / Sửa Sản phẩm
   const productForm = document.getElementById('productForm');
   if (productForm) {
     initProductFormPage();
@@ -361,15 +293,7 @@ function initProductListPage() {
       }
     } catch (err) {
       console.warn('Không thể tải danh mục cho bộ lọc:', err);
-      const fallbackCats = window.CloudInventoryMock?.categories || [];
-      if (statCategoryCount) statCategoryCount.textContent = fallbackCats.length || '4';
-      if (categoryFilter && fallbackCats.length > 0) {
-        let optionsHtml = '<option value="">-- Tất cả danh mục --</option>';
-        fallbackCats.forEach(cat => {
-          optionsHtml += `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`;
-        });
-        categoryFilter.innerHTML = optionsHtml;
-      }
+      if (statCategoryCount) statCategoryCount.textContent = '0';
     }
   }
 
@@ -433,49 +357,8 @@ function initProductListPage() {
       }
 
       console.error('Lỗi khi tải danh sách sản phẩm:', err);
-
-      // Nếu lỗi kết nối DB, tự động hiển thị dữ liệu mẫu để người dùng xem trước đầy đủ giao diện
-      if (window.CloudInventoryMock && Array.isArray(window.CloudInventoryMock.products)) {
-        let mockItems = [...window.CloudInventoryMock.products];
-        if (currentSearch) {
-          const s = currentSearch.toLowerCase();
-          mockItems = mockItems.filter(p => p.name.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s));
-        }
-        if (currentCategory) {
-          mockItems = mockItems.filter(p => String(p.category_id) === String(currentCategory));
-        }
-        if (loadingState) loadingState.classList.add('d-none');
-        if (tableContainer) tableContainer.classList.remove('d-none');
-        if (errorState) errorState.classList.add('d-none');
-        if (resultCount) resultCount.textContent = `${mockItems.length} sản phẩm (Bản xem trước)`;
-        if (statTotal) statTotal.textContent = mockItems.length;
-        updatePageStats(mockItems);
-        renderTable(mockItems);
-        renderPagination({ page: 1, limit: mockItems.length, total: mockItems.length, totalPages: 1 });
-
-        // Cập nhật thông báo live status
-        const liveStatusAlert = document.querySelector('.alert-light.border.shadow-sm');
-        if (liveStatusAlert && !document.getElementById('mockNoticeBadge')) {
-          liveStatusAlert.className = 'alert alert-warning border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3';
-          liveStatusAlert.innerHTML = `
-            <div class="d-flex align-items-center gap-3">
-              <span id="mockNoticeBadge" class="badge bg-warning text-dark border px-2 py-1 fs-6">
-                <i class="bi bi-info-circle me-1"></i>Bản xem trước (Preview)
-              </span>
-              <div>
-                <div class="fw-semibold text-dark">Chế độ xem trước giao diện (Dữ liệu mẫu)</div>
-                <div class="small text-muted">Chưa bật MySQL local. Đang hiển thị dữ liệu mẫu để bạn kiểm tra giao diện, bộ lọc và tính năng. Bật Docker Desktop để kết nối DB thật!</div>
-              </div>
-            </div>
-            <a href="/index.html" class="btn btn-sm btn-outline-dark d-none d-md-inline-block">
-              Về trang đăng nhập
-            </a>
-          `;
-        }
-        return;
-      }
-
       if (loadingState) loadingState.classList.add('d-none');
+      if (tableContainer) tableContainer.classList.add('d-none');
       if (errorState) {
         errorState.classList.remove('d-none');
         if (errorMessage) {

@@ -1,19 +1,24 @@
 const { Router } = require('express');
+const { authenticate } = require('../../middlewares/auth');
+const { authorize } = require('../../middlewares/role');
 const categoriesController = require('./categories.controller');
 
 // Module: categories — phụ trách: Người 1
-// Phân quyền theo quy ước (chờ Người 3 hoàn thành auth middleware):
-// - GET: ADMIN, STAFF (hoặc public nội bộ)
-// - POST, PUT, DELETE: ADMIN
-// Khi Người 3 cung cấp auth.js và role.js, gắn:
-// router.post('/', authenticate, authorize('ADMIN'), categoriesController.createCategory);
+// Phân quyền theo quy ước:
+// - Tất cả route yêu cầu: authenticate
+// - GET: ADMIN, STAFF
+// - POST, PUT: ADMIN, STAFF
+// - DELETE: ADMIN (STAFF không được phép xóa danh mục)
 
 const router = Router();
 
+// Yêu cầu đăng nhập cho toàn bộ phân hệ danh mục
+router.use(authenticate);
+
 router.get('/', categoriesController.getCategories);
 router.get('/:id', categoriesController.getCategoryById);
-router.post('/', categoriesController.createCategory);
-router.put('/:id', categoriesController.updateCategory);
-router.delete('/:id', categoriesController.deleteCategory);
+router.post('/', authorize('ADMIN', 'STAFF'), categoriesController.createCategory);
+router.put('/:id', authorize('ADMIN', 'STAFF'), categoriesController.updateCategory);
+router.delete('/:id', authorize('ADMIN'), categoriesController.deleteCategory);
 
 module.exports = router;

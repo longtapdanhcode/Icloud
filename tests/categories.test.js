@@ -2,9 +2,36 @@ process.env.NODE_ENV = 'test';
 
 const { test, after, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
-const request = require('supertest');
+const rawSupertest = require('supertest');
+const jwt = require('jsonwebtoken');
 const app = require('../src/app');
 const db = require('../src/config/db');
+const env = require('../src/config/env');
+
+const testSecret = env.JWT_SECRET || 'test-jwt-secret-cloud-inventory';
+
+const adminToken = jwt.sign(
+  { id: 1, email: 'admin@cloudinventory.vn', role: 'ADMIN' },
+  testSecret,
+  { expiresIn: '1h' }
+);
+
+const staffToken = jwt.sign(
+  { id: 2, email: 'staff@cloudinventory.vn', role: 'STAFF' },
+  testSecret,
+  { expiresIn: '1h' }
+);
+
+// Wrapper supertest có sẵn Authorization header cho ADMIN để các test nghiệp vụ không bị 401
+function request(appInstance) {
+  const agent = rawSupertest(appInstance);
+  return {
+    get: (url) => agent.get(url).set('Authorization', `Bearer ${adminToken}`),
+    post: (url) => agent.post(url).set('Authorization', `Bearer ${adminToken}`),
+    put: (url) => agent.put(url).set('Authorization', `Bearer ${adminToken}`),
+    delete: (url) => agent.delete(url).set('Authorization', `Bearer ${adminToken}`),
+  };
+}
 
 // Danh sách ID test tạo trong quá trình kiểm thử cần dọn dẹp
 const createdCategoryIds = [];
@@ -242,3 +269,19 @@ test('GET /api/categories - trả 500 khi database mất kết nối', async () 
     db.query = originalQuery;
   }
 });
+
+// 11. Kiểm tra xác thực và phân quyền
+test('GET /api/categories - chặn 401 khi không truyền Authorization header', async () => {
+  const res = await rawSupertest(app).get('/api/categories');
+  assert.equal(res.status, 401);
+  assert.equal(res.body.success, false);
+});
+
+test('DELETE /api/categories/:id - chặn 403 khi tài khoản STAFF cố gắng xóa danh mục', async () => {
+  const res = await rawSupertest(app)
+    .delete('/api/categories/1')
+    .set('Authorization', `Bearer ${staffToken}`);
+  assert.equal(res.status, 403);
+  assert.equal(res.body.success, false);
+});
+

@@ -13,31 +13,14 @@
 // =============================================================================
 // 1. API SERVICE LAYER
 // =============================================================================
-function getApiHeaders(customHeaders = {}) {
-  if (typeof window !== 'undefined' && window.AdminAuth && typeof window.AdminAuth.getHeaders === 'function') {
-    return window.AdminAuth.getHeaders(customHeaders);
-  }
-  return { 'Accept': 'application/json', ...customHeaders };
-}
-
 const CategoryApi = {
   baseUrl: '/api/categories',
 
   /**
-   * Lấy danh sách toàn bộ danh mục kèm số lượng sản phẩm liên kết
+   * Lấy danh sách toàn bộ danh mục kèm số lượng sản phẩm liên kết qua Api.request
    */
   async list() {
-    const res = await fetch(this.baseUrl, {
-      method: 'GET',
-      headers: getApiHeaders(),
-    });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || 'Không thể tải danh sách danh mục');
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
+    const result = await window.Api.request(this.baseUrl);
     return result.data || [];
   },
 
@@ -45,17 +28,7 @@ const CategoryApi = {
    * Lấy chi tiết một danh mục theo ID
    */
   async getById(id) {
-    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
-      method: 'GET',
-      headers: getApiHeaders(),
-    });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || `Không thể tải danh mục #${id}`);
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
+    const result = await window.Api.request(`${this.baseUrl}/${encodeURIComponent(id)}`);
     return result.data;
   },
 
@@ -63,20 +36,10 @@ const CategoryApi = {
    * Tạo danh mục mới
    */
   async create(payload) {
-    const res = await fetch(this.baseUrl, {
+    const result = await window.Api.request(this.baseUrl, {
       method: 'POST',
-      headers: getApiHeaders({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(payload),
+      body: payload,
     });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || 'Không thể tạo danh mục');
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
     return result.data;
   },
 
@@ -84,20 +47,10 @@ const CategoryApi = {
    * Cập nhật danh mục theo ID
    */
   async update(id, payload) {
-    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
+    const result = await window.Api.request(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'PUT',
-      headers: getApiHeaders({
-        'Content-Type': 'application/json',
-      }),
-      body: JSON.stringify(payload),
+      body: payload,
     });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || `Không thể cập nhật danh mục #${id}`);
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
     return result.data;
   },
 
@@ -105,20 +58,13 @@ const CategoryApi = {
    * Xóa danh mục theo ID
    */
   async delete(id) {
-    const res = await fetch(`${this.baseUrl}/${encodeURIComponent(id)}`, {
+    const result = await window.Api.request(`${this.baseUrl}/${encodeURIComponent(id)}`, {
       method: 'DELETE',
-      headers: getApiHeaders(),
     });
-    const result = await res.json();
-    if (!res.ok) {
-      const err = new Error(result?.error?.message || `Không thể xóa danh mục #${id}`);
-      err.status = res.status;
-      err.code = result?.error?.code;
-      throw err;
-    }
     return result.data;
   },
 };
+
 
 // =============================================================================
 // 2. HELPER UTILITIES
@@ -204,40 +150,33 @@ function getCurrentUserRole() {
 // =============================================================================
 // 3. MAIN INITIALIZATION
 // =============================================================================
-document.addEventListener('DOMContentLoaded', function () {
-  // 3.1. Sidebar Toggle cho giao diện Mobile & Tablet
-  const sidebar = document.getElementById('adminSidebar');
-  const sidebarToggle = document.getElementById('sidebarToggle');
-  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+document.addEventListener('DOMContentLoaded', async function () {
+  // 3.1. Xác thực đăng nhập bắt buộc qua Api.requireLogin
+  let currentUser = null;
+  if (window.Api && typeof window.Api.requireLogin === 'function') {
+    try {
+      currentUser = await window.Api.requireLogin({ roles: ['ADMIN', 'STAFF'] });
+    } catch {
+      return; // Tự động về trang đăng nhập
+    }
+  }
 
-  if (sidebarToggle && sidebar) {
-    sidebarToggle.addEventListener('click', function () {
-      sidebar.classList.toggle('show');
-      if (sidebarBackdrop) sidebarBackdrop.classList.toggle('show');
+  // 3.2. Render Layout dùng chung (Sidebar + Navbar)
+  const isFormPage = !!document.getElementById('categoryForm');
+  if (window.Layout && typeof window.Layout.render === 'function') {
+    window.Layout.render({
+      active: isFormPage ? 'category-form' : 'categories',
+      user: currentUser,
     });
   }
 
-  if (sidebarBackdrop) {
-    sidebarBackdrop.addEventListener('click', function () {
-      sidebar.classList.remove('show');
-      sidebarBackdrop.classList.remove('show');
-    });
-  }
-
-  // Cập nhật nhãn quyền trong giao diện nếu có
-  const authRoleIndicator = document.getElementById('authRoleIndicator');
-  const currentRole = getCurrentUserRole();
-  if (authRoleIndicator) {
-    authRoleIndicator.textContent = currentRole === 'ADMIN' ? 'Quản trị viên (ADMIN)' : 'Nhân viên (STAFF)';
-  }
-
-  // 3.2. Khởi tạo trang Danh sách Danh mục
+  // 3.3. Khởi tạo trang Danh sách Danh mục
   const categoryTableBody = document.getElementById('categoryTableBody');
   if (categoryTableBody) {
     initCategoryListPage();
   }
 
-  // 3.3. Khởi tạo trang Form Thêm / Sửa Danh mục
+  // 3.4. Khởi tạo trang Form Thêm / Sửa Danh mục
   const categoryForm = document.getElementById('categoryForm');
   if (categoryForm) {
     initCategoryFormPage();
@@ -316,35 +255,6 @@ function initCategoryListPage() {
     } catch (err) {
       console.error('Lỗi khi tải danh sách danh mục:', err);
 
-      // Nếu lỗi DB, tự động hiển thị dữ liệu mẫu để xem trước giao diện
-      if (window.CloudInventoryMock && Array.isArray(window.CloudInventoryMock.categories)) {
-        categoriesData = [...window.CloudInventoryMock.categories];
-        updateStats(categoriesData);
-        if (loadingState) loadingState.classList.add('d-none');
-        if (tableContainer) tableContainer.classList.remove('d-none');
-        if (errorState) errorState.classList.add('d-none');
-        renderTable();
-
-        const liveStatusAlert = document.querySelector('.alert-light.border.shadow-sm');
-        if (liveStatusAlert && !document.getElementById('mockNoticeBadgeCat')) {
-          liveStatusAlert.className = 'alert alert-warning border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3';
-          liveStatusAlert.innerHTML = `
-            <div class="d-flex align-items-center gap-3">
-              <span id="mockNoticeBadgeCat" class="badge bg-warning text-dark border px-2 py-1 fs-6">
-                <i class="bi bi-info-circle me-1"></i>Bản xem trước (Preview)
-              </span>
-              <div>
-                <div class="fw-semibold text-dark">Chế độ xem trước giao diện (Dữ liệu mẫu)</div>
-                <div class="small text-muted">Chưa bật MySQL local. Đang hiển thị dữ liệu mẫu để bạn kiểm tra giao diện danh mục. Bật Docker Desktop để kết nối DB thật!</div>
-              </div>
-            </div>
-            <a href="/products.html" class="btn btn-sm btn-outline-dark d-none d-md-inline-block">
-              Xem trang sản phẩm
-            </a>
-          `;
-        }
-        return;
-      }
 
       if (loadingState) loadingState.classList.add('d-none');
       if (errorState) {
