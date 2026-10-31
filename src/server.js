@@ -6,7 +6,7 @@ const server = app.listen(env.PORT, () => {
   console.log(`[server] listening on port ${env.PORT} (${env.NODE_ENV})`);
 });
 
-// Railway gửi SIGTERM khi redeploy: dừng nhận request mới, đóng pool DB rồi thoát
+// Render gửi SIGTERM khi redeploy: dừng nhận request mới, đóng pool DB rồi thoát
 function shutdown(signal) {
   console.log(`[server] ${signal} received, shutting down`);
   server.close(async () => {

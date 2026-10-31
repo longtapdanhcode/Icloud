@@ -11,7 +11,7 @@ const { rateLimit } = require('./middlewares/rateLimit');
 
 const app = express();
 
-// Render/Railway đặt app sau proxy, cần để lấy đúng IP client và protocol
+// Render đặt app sau proxy, cần để lấy đúng IP client và protocol
 app.set('trust proxy', 1);
 
 app.use(requestId);

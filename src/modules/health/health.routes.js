@@ -4,7 +4,7 @@ const db = require('../../config/db');
 const router = Router();
 const startedAt = Date.now();
 
-// Railway gọi endpoint này để biết app sống; trả 503 khi DB không kết nối được
+// Render gọi endpoint này để biết app sống (/health); trả 503 khi DB không kết nối được
 router.get('/', async (req, res) => {
   let dbStatus = 'up';
   try {
