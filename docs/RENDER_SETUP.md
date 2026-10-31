@@ -4,8 +4,6 @@ Render không có MySQL, nên dùng:
 - **Render** (gói Free): chạy Node.js/Express, domain công khai, deploy tự động từ GitHub.
 - **Aiven** (gói Free): MySQL 8, có backup tự động, metrics và log.
 
-> `railway.json` và `docs/RAILWAY_SETUP.md` vẫn được giữ lại để quay về Railway khi cần.
-
 ## Bước 1: Tạo MySQL trên Aiven
 
 1. Đăng ký https://console.aiven.io (đăng nhập bằng GitHub được).

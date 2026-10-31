@@ -70,7 +70,7 @@ test('clientIp: chỉ dùng CF-Connecting-IP khi được phép tin Cloudflare',
 
   assert.equal(clientIp(req({ 'cf-connecting-ip': '203.0.113.7' }), { trustCf: true }), '203.0.113.7');
   assert.equal(clientIp(req({ 'cf-connecting-ip': '2001:db8::1' }), { trustCf: true }), '2001:db8::1');
-  // Không tin Cloudflare (local/test/Railway): bỏ qua header client tự gửi
+  // Không tin Cloudflare (local/test): bỏ qua header client tự gửi
   assert.equal(clientIp(req({ 'cf-connecting-ip': '203.0.113.7' }), { trustCf: false }), '10.0.0.1');
   // Giá trị không phải IP hợp lệ thì bỏ qua
   assert.equal(clientIp(req({ 'cf-connecting-ip': 'not-an-ip' }), { trustCf: true }), '10.0.0.1');

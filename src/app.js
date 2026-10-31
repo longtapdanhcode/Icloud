@@ -35,9 +35,8 @@ app.use(express.json({ limit: '1mb' }));
 
 app.use('/health', require('./modules/health/health.routes'));
 
-// Chống dò mật khẩu: tối đa 10 lần đăng nhập mỗi 15 phút cho một IP.
-// Tắt khi chạy test vì test các module đăng nhập liên tục.
-if (!env.isTest) {
+// Chống dò mật khẩu: tối đa 10 lần đăng nhập mỗi 15 phút ở production; nới lỏng ở dev/test.
+if (env.isProduction) {
   app.post('/api/auth/login', rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,

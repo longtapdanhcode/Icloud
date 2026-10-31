@@ -83,11 +83,11 @@ loginForm.addEventListener("submit", async function (event) {
     const result = await response.json();
 
     if (!response.ok || result.success === false) {
-      throw new Error(
-        result.message ||
-          result.error?.message ||
-          "Email hoặc mật khẩu không chính xác.",
-      );
+      let msg = result.message || result.error?.message || "Email hoặc mật khẩu không chính xác.";
+      if (msg === "Lỗi hệ thống" || response.status === 500) {
+        msg = "Chưa kết nối được MySQL database local. Bạn hãy bật Docker Desktop, hoặc bấm vào 'Quản lý Sản phẩm' bên dưới để xem trước giao diện!";
+      }
+      throw new Error(msg);
     }
 
     // Backend trả token trong data.

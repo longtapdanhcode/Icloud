@@ -315,6 +315,37 @@ function initCategoryListPage() {
       renderTable();
     } catch (err) {
       console.error('Lỗi khi tải danh sách danh mục:', err);
+
+      // Nếu lỗi DB, tự động hiển thị dữ liệu mẫu để xem trước giao diện
+      if (window.CloudInventoryMock && Array.isArray(window.CloudInventoryMock.categories)) {
+        categoriesData = [...window.CloudInventoryMock.categories];
+        updateStats(categoriesData);
+        if (loadingState) loadingState.classList.add('d-none');
+        if (tableContainer) tableContainer.classList.remove('d-none');
+        if (errorState) errorState.classList.add('d-none');
+        renderTable();
+
+        const liveStatusAlert = document.querySelector('.alert-light.border.shadow-sm');
+        if (liveStatusAlert && !document.getElementById('mockNoticeBadgeCat')) {
+          liveStatusAlert.className = 'alert alert-warning border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3';
+          liveStatusAlert.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+              <span id="mockNoticeBadgeCat" class="badge bg-warning text-dark border px-2 py-1 fs-6">
+                <i class="bi bi-info-circle me-1"></i>Bản xem trước (Preview)
+              </span>
+              <div>
+                <div class="fw-semibold text-dark">Chế độ xem trước giao diện (Dữ liệu mẫu)</div>
+                <div class="small text-muted">Chưa bật MySQL local. Đang hiển thị dữ liệu mẫu để bạn kiểm tra giao diện danh mục. Bật Docker Desktop để kết nối DB thật!</div>
+              </div>
+            </div>
+            <a href="/products.html" class="btn btn-sm btn-outline-dark d-none d-md-inline-block">
+              Xem trang sản phẩm
+            </a>
+          `;
+        }
+        return;
+      }
+
       if (loadingState) loadingState.classList.add('d-none');
       if (errorState) {
         errorState.classList.remove('d-none');

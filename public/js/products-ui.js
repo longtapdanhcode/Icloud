@@ -361,7 +361,15 @@ function initProductListPage() {
       }
     } catch (err) {
       console.warn('Không thể tải danh mục cho bộ lọc:', err);
-      if (statCategoryCount) statCategoryCount.textContent = '4';
+      const fallbackCats = window.CloudInventoryMock?.categories || [];
+      if (statCategoryCount) statCategoryCount.textContent = fallbackCats.length || '4';
+      if (categoryFilter && fallbackCats.length > 0) {
+        let optionsHtml = '<option value="">-- Tất cả danh mục --</option>';
+        fallbackCats.forEach(cat => {
+          optionsHtml += `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`;
+        });
+        categoryFilter.innerHTML = optionsHtml;
+      }
     }
   }
 
@@ -425,6 +433,48 @@ function initProductListPage() {
       }
 
       console.error('Lỗi khi tải danh sách sản phẩm:', err);
+
+      // Nếu lỗi kết nối DB, tự động hiển thị dữ liệu mẫu để người dùng xem trước đầy đủ giao diện
+      if (window.CloudInventoryMock && Array.isArray(window.CloudInventoryMock.products)) {
+        let mockItems = [...window.CloudInventoryMock.products];
+        if (currentSearch) {
+          const s = currentSearch.toLowerCase();
+          mockItems = mockItems.filter(p => p.name.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s));
+        }
+        if (currentCategory) {
+          mockItems = mockItems.filter(p => String(p.category_id) === String(currentCategory));
+        }
+        if (loadingState) loadingState.classList.add('d-none');
+        if (tableContainer) tableContainer.classList.remove('d-none');
+        if (errorState) errorState.classList.add('d-none');
+        if (resultCount) resultCount.textContent = `${mockItems.length} sản phẩm (Bản xem trước)`;
+        if (statTotal) statTotal.textContent = mockItems.length;
+        updatePageStats(mockItems);
+        renderTable(mockItems);
+        renderPagination({ page: 1, limit: mockItems.length, total: mockItems.length, totalPages: 1 });
+
+        // Cập nhật thông báo live status
+        const liveStatusAlert = document.querySelector('.alert-light.border.shadow-sm');
+        if (liveStatusAlert && !document.getElementById('mockNoticeBadge')) {
+          liveStatusAlert.className = 'alert alert-warning border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3';
+          liveStatusAlert.innerHTML = `
+            <div class="d-flex align-items-center gap-3">
+              <span id="mockNoticeBadge" class="badge bg-warning text-dark border px-2 py-1 fs-6">
+                <i class="bi bi-info-circle me-1"></i>Bản xem trước (Preview)
+              </span>
+              <div>
+                <div class="fw-semibold text-dark">Chế độ xem trước giao diện (Dữ liệu mẫu)</div>
+                <div class="small text-muted">Chưa bật MySQL local. Đang hiển thị dữ liệu mẫu để bạn kiểm tra giao diện, bộ lọc và tính năng. Bật Docker Desktop để kết nối DB thật!</div>
+              </div>
+            </div>
+            <a href="/index.html" class="btn btn-sm btn-outline-dark d-none d-md-inline-block">
+              Về trang đăng nhập
+            </a>
+          `;
+        }
+        return;
+      }
+
       if (loadingState) loadingState.classList.add('d-none');
       if (errorState) {
         errorState.classList.remove('d-none');
