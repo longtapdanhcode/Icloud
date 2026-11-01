@@ -1,7 +1,7 @@
 const net = require('net');
 
 // Chỉ tin CF-Connecting-IP khi chắc chắn mọi request đi qua Cloudflare (Render tự đặt RENDER=true).
-// Ở nơi khác (local, test, Railway) client có thể tự gửi header này để giả IP.
+// Ở nơi khác (local, test) client có thể tự gửi header này để giả IP.
 const trustCloudflare = process.env.TRUST_CF_CONNECTING_IP === 'true'
   || (process.env.RENDER === 'true' && process.env.TRUST_CF_CONNECTING_IP !== 'false');
 

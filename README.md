@@ -84,6 +84,4 @@ Mỗi người chỉ làm trong thư mục module của mình. Router đã đư�
 
 ## Triển khai
 
-Môi trường chính: **Render + Aiven MySQL**, xem [docs/RENDER_SETUP.md](docs/RENDER_SETUP.md).
-
-Phương án dự phòng: Railway, xem [docs/RAILWAY_SETUP.md](docs/RAILWAY_SETUP.md) (`railway.json` vẫn giữ).
+Triển khai trên **Render + Aiven MySQL**, xem chi tiết tại [docs/RENDER_SETUP.md](docs/RENDER_SETUP.md).
