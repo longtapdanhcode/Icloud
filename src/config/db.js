@@ -40,8 +40,14 @@ function getPool() {
       ...connectionOptions(),
       waitForConnections: true,
       connectionLimit: 10,
-      dateStrings: true,
+      // DB lưu giờ UTC; trả về Date để JSON có dạng ISO "…Z" và trình duyệt tự đổi sang giờ Việt Nam.
+      // (Trước đây dateStrings trả "2026-11-01 04:26:51" không kèm múi giờ nên bị hiển thị lệch 7 tiếng.)
+      timezone: 'Z',
       decimalNumbers: true,
+    });
+    // Ép mọi kết nối dùng UTC để CURRENT_TIMESTAMP/NOW() không phụ thuộc cấu hình máy chủ MySQL
+    pool.pool.on('connection', (conn) => {
+      conn.query("SET time_zone = '+00:00'");
     });
   }
   return pool;
