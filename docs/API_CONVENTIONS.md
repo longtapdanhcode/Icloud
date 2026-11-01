@@ -57,6 +57,12 @@ Lỗi MySQL `ER_DUP_ENTRY` và `ER_ROW_IS_REFERENCED_2` được errorHandler t�
 - `sort` chỉ nhận các cột trong whitelist, **không nối chuỗi trực tiếp vào SQL**.
 - Mọi SQL dùng placeholder `?`, không nối chuỗi từ input.
 
+### Ngày giờ
+
+- DB lưu **giờ UTC** (mọi kết nối đặt `time_zone = '+00:00'`). Cột `DATETIME` đọc ra là `Date`, API trả dạng ISO có `Z`: `"created_at": "2026-11-01T06:25:31.000Z"`.
+- **Frontend:** hiển thị bằng `new Date(value).toLocaleString('vi-VN')`, trình duyệt tự đổi sang giờ Việt Nam. Không cắt chuỗi hay tự cộng 7 tiếng.
+- **Lọc theo ngày** (`?from=&to=`): frontend gửi ISO có múi giờ, ví dụ đầu ngày 1/11 giờ Việt Nam là `new Date(2026, 10, 1).toISOString()`, ra `2026-10-31T17:00:00.000Z`. Backend chuyển bằng `new Date(req.query.from)`, kiểm tra hợp lệ (`!isNaN(date)`), rồi truyền thẳng làm tham số `?`. Không nối chuỗi ngày vào SQL.
+
 ## 4. Xác thực
 
 - Header: `Authorization: Bearer <token>`.
