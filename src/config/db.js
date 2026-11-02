@@ -2,19 +2,52 @@ const mysql = require('mysql2/promise');
 const env = require('./env');
 
 let pool;
+let sslWarned = false;
+
+// Cấu hình kết nối dùng chung cho app và scripts/migrate.js.
+// mysql2 không hiểu tham số ssl-mode trong URL (Aiven có sẵn), nên bỏ nó đi và tự bật SSL.
+function connectionOptions() {
+  if (!env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not set');
+  }
+
+  const url = new URL(env.DATABASE_URL);
+  const sslMode = (url.searchParams.get('ssl-mode') || '').toUpperCase();
+  url.searchParams.delete('ssl-mode');
+
+  const options = { uri: url.toString() };
+
+  if (env.DB_SSL || (sslMode && sslMode !== 'DISABLED')) {
+    if (env.DB_CA_CERT) {
+      options.ssl = { ca: env.DB_CA_CERT, rejectUnauthorized: true };
+    } else {
+      // Vẫn mã hóa đường truyền nhưng không xác minh server; nên đặt DB_CA_CERT ở production
+      options.ssl = { rejectUnauthorized: false };
+      if (!sslWarned) {
+        console.warn('[db] SSL enabled without DB_CA_CERT: server certificate is not verified');
+        sslWarned = true;
+      }
+    }
+  }
+
+  return options;
+}
 
 // Tạo pool khi cần lần đầu, để app vẫn khởi động được (và /health báo lỗi) khi DB chưa sẵn sàng
 function getPool() {
   if (!pool) {
-    if (!env.DATABASE_URL) {
-      throw new Error('DATABASE_URL is not set');
-    }
     pool = mysql.createPool({
-      uri: env.DATABASE_URL,
+      ...connectionOptions(),
       waitForConnections: true,
       connectionLimit: 10,
-      dateStrings: true,
+      // DB lưu giờ UTC; trả về Date để JSON có dạng ISO "…Z" và trình duyệt tự đổi sang giờ Việt Nam.
+      // (Trước đây dateStrings trả "2026-11-01 04:26:51" không kèm múi giờ nên bị hiển thị lệch 7 tiếng.)
+      timezone: 'Z',
       decimalNumbers: true,
+    });
+    // Ép mọi kết nối dùng UTC để CURRENT_TIMESTAMP/NOW() không phụ thuộc cấu hình máy chủ MySQL
+    pool.pool.on('connection', (conn) => {
+      conn.query("SET time_zone = '+00:00'");
     });
   }
   return pool;
@@ -52,4 +85,4 @@ async function close() {
   }
 }
 
-module.exports = { getPool, query, withTransaction, ping, close };
+module.exports = { connectionOptions, getPool, query, withTransaction, ping, close };

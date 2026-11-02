@@ -1,5 +1,5 @@
--- Cloud Inventory — schema MySQL 8+
--- Mọi thay đổi schema phải qua Pull Request và báo cả nhóm.
+-- Schema ban đầu (tuần 1). Đã chạy trên production: KHÔNG sửa file này.
+-- Muốn thay đổi schema: npm run db:migrate:new -- <ten_thay_doi>
 
 CREATE TABLE IF NOT EXISTS users (
   id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

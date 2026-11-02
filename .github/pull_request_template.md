@@ -8,4 +8,4 @@
 - [ ] Chạy `npm test` pass trên máy
 - [ ] Response theo đúng chuẩn `{ success, data | error }`
 - [ ] Không commit `.env`, mật khẩu, key
-- [ ] Nếu sửa `db/schema.sql`: đã báo cả nhóm
+- [ ] Nếu đổi schema: thêm file mới trong `db/migrations/` (không sửa file cũ) và đã báo cả nhóm
