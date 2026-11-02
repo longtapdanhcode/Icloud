@@ -2,6 +2,34 @@
 const db = require('../../config/db');
 const AppError = require('../../utils/AppError');
 
+function validateSupplier({ name, phone, email, address }) {
+  if (typeof name !== 'string' || !name.trim()) {
+    throw AppError.badRequest('Tên nhà cung cấp không được để trống');
+  }
+
+  if (name.trim().length > 150) {
+    throw AppError.badRequest('Tên nhà cung cấp không được vượt quá 150 ký tự');
+  }
+
+  if (email != null && email !== '') {
+    if (
+      typeof email !== 'string' ||
+      email.length > 150 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    ) {
+      throw AppError.badRequest('Email nhà cung cấp không hợp lệ');
+    }
+  }
+
+  if (phone != null && String(phone).length > 20) {
+    throw AppError.badRequest('Số điện thoại không được vượt quá 20 ký tự');
+  }
+
+  if (address != null && String(address).length > 255) {
+    throw AppError.badRequest('Địa chỉ không được vượt quá 255 ký tự');
+  }
+}
+
 async function list({ page, limit, offset, search }) {
   const keyword = `%${search || ''}%`;
 
@@ -27,14 +55,12 @@ async function list({ page, limit, offset, search }) {
 async function create(data) {
   const { name, phone = null, email = null, address = null } = data;
 
-  if (typeof name !== 'string' || !name.trim()) {
-    throw AppError.badRequest('Tên nhà cung cấp không được để trống');
-  }
+  validateSupplier({ name, phone, email, address });
 
   const result = await db.query(
     `INSERT INTO suppliers (name, phone, email, address)
      VALUES (?, ?, ?, ?)`,
-    [name.trim(), phone, email, address],
+    [name.trim(), phone, email || null, address],
   );
 
   return findById(result.insertId);
@@ -56,20 +82,19 @@ async function findById(id) {
 
 async function update(id, data) {
   const current = await findById(id);
+
   const name = data.name ?? current.name;
   const phone = data.phone === undefined ? current.phone : data.phone;
   const email = data.email === undefined ? current.email : data.email;
   const address = data.address === undefined ? current.address : data.address;
 
-  if (typeof name !== 'string' || !name.trim()) {
-    throw AppError.badRequest('Tên nhà cung cấp không được để trống');
-  }
+  validateSupplier({ name, phone, email, address });
 
   await db.query(
     `UPDATE suppliers
      SET name = ?, phone = ?, email = ?, address = ?
      WHERE id = ?`,
-    [name.trim(), phone, email, address, id],
+    [name.trim(), phone, email || null, address, id],
   );
 
   return findById(id);

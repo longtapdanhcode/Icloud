@@ -9,7 +9,15 @@ function validateTransaction(data) {
     throw AppError.badRequest('type phải là IN hoặc OUT');
   }
 
-  if (type === 'IN' && !Number.isInteger(Number(supplier_id))) {
+  if (
+    type === 'IN' &&
+    (
+      supplier_id == null ||
+      supplier_id === '' ||
+      !Number.isInteger(Number(supplier_id)) ||
+      Number(supplier_id) <= 0
+    )
+  ) {
     throw AppError.badRequest('Phiếu nhập kho phải có supplier_id hợp lệ');
   }
 
@@ -75,7 +83,7 @@ async function create(data, createdBy) {
       );
 
       if (products.length === 0) {
-        throw AppError.badRequest(
+        throw AppError.notFound(
           `Không tìm thấy sản phẩm ID ${productId}`,
         );
       }
@@ -163,13 +171,17 @@ async function list({ page, limit, offset, type, productId, from, to }) {
   }
 
   if (from) {
-    conditions.push('st.created_at >= ?');
+    conditions.push(
+      "st.created_at >= CONVERT_TZ(?, '+07:00', '+00:00')",
+    );
     params.push(`${from} 00:00:00`);
   }
 
   if (to) {
-    conditions.push('st.created_at < DATE_ADD(?, INTERVAL 1 DAY)');
-    params.push(to);
+    conditions.push(
+      "st.created_at < CONVERT_TZ(DATE_ADD(?, INTERVAL 1 DAY), '+07:00', '+00:00')",
+    );
+    params.push(`${to} 00:00:00`);
   }
 
   const where = conditions.length
