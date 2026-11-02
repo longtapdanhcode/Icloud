@@ -12,18 +12,19 @@
      * @param {'products'|'product-form'|'categories'|'category-form'|'dashboard'} params.active
      * @param {object} params.user
      */
-    render({ active = 'dashboard', user = null } = {}) {
-      const container = document.getElementById('app-layout');
+    render({ active = "dashboard", user = null } = {}) {
+      const container = document.getElementById("app-layout");
       if (!container) return;
 
-      const role = user?.role || 'STAFF';
-      const fullName = user?.full_name || 'Người dùng';
-      const email = user?.email || 'user@cloudinventory.vn';
-      const avatarInitial = (fullName || 'U').trim().charAt(0).toUpperCase();
+      const role = user?.role || "STAFF";
+      const fullName = user?.full_name || "Người dùng";
+      const email = user?.email || "user@cloudinventory.vn";
+      const avatarInitial = (fullName || "U").trim().charAt(0).toUpperCase();
 
-      const roleBadgeClass = role === 'ADMIN'
-        ? 'badge bg-success-subtle text-success border border-success-subtle px-2 py-1'
-        : 'badge bg-info-subtle text-info border border-info-subtle px-2 py-1';
+      const roleBadgeClass =
+        role === "ADMIN"
+          ? "badge bg-success-subtle text-success border border-success-subtle px-2 py-1"
+          : "badge bg-info-subtle text-info border border-info-subtle px-2 py-1";
 
       // 1. Sidebar HTML
       const sidebarHtml = `
@@ -42,7 +43,7 @@
           <ul class="sidebar-menu">
             <li class="menu-header">TỔNG QUAN</li>
             <li class="menu-item">
-              <a href="/index.html" class="menu-link ${active === 'dashboard' ? 'active' : ''}">
+              <a href="/index.html" class="menu-link ${active === "dashboard" ? "active" : ""}">
                 <i class="bi bi-speedometer2"></i>
                 <span>Bảng điều khiển</span>
               </a>
@@ -50,29 +51,43 @@
 
             <li class="menu-header">QUẢN LÝ KHO (NGƯỜI 1)</li>
             <li class="menu-item">
-              <a href="/products.html" class="menu-link ${active === 'products' ? 'active' : ''}">
+              <a href="/products.html" class="menu-link ${active === "products" ? "active" : ""}">
                 <i class="bi bi-box-seam"></i>
                 <span>Sản phẩm</span>
               </a>
             </li>
             <li class="menu-item">
-              <a href="/product-form.html" class="menu-link ${active === 'product-form' ? 'active' : ''}">
+              <a href="/product-form.html" class="menu-link ${active === "product-form" ? "active" : ""}">
                 <i class="bi bi-plus-circle"></i>
                 <span>Thêm sản phẩm</span>
               </a>
             </li>
             <li class="menu-item">
-              <a href="/categories.html" class="menu-link ${active === 'categories' ? 'active' : ''}">
+              <a href="/categories.html" class="menu-link ${active === "categories" ? "active" : ""}">
                 <i class="bi bi-tags"></i>
                 <span>Danh mục</span>
               </a>
             </li>
             <li class="menu-item">
-              <a href="/category-form.html" class="menu-link ${active === 'category-form' ? 'active' : ''}">
+              <a href="/category-form.html" class="menu-link ${active === "category-form" ? "active" : ""}">
                 <i class="bi bi-folder-plus"></i>
                 <span>Thêm danh mục</span>
               </a>
             </li>
+            ${
+              role === "ADMIN"
+                ? `
+              <li class="menu-header">QUẢN TRỊ HỆ THỐNG</li>
+              <li class="menu-item">
+                <a href="/users.html" class="menu-link ${active === "users" ? "active" : ""}">
+                  <i class="bi bi-people"></i>
+                  <span>Quản lý nhân viên</span>
+                </a>
+              </li>
+            `
+                : ""
+            } 
+            
 
             <li class="menu-header">HỆ THỐNG</li>
             <li class="menu-item">
@@ -127,10 +142,12 @@
       `;
 
       // Tìm thẻ main nội dung trang
-      const mainEl = document.querySelector('main') || document.querySelector('.page-content');
+      const mainEl =
+        document.querySelector("main") ||
+        document.querySelector(".page-content");
 
       // Thiết lập wrapper flexbox
-      container.className = 'admin-wrapper';
+      container.className = "admin-wrapper";
       container.innerHTML = `
         ${sidebarHtml}
         <div class="admin-main" id="adminMainContainer">
@@ -140,48 +157,58 @@
 
       // Đưa main nội dung vào trong .admin-main
       if (mainEl) {
-        document.getElementById('adminMainContainer').appendChild(mainEl);
+        document.getElementById("adminMainContainer").appendChild(mainEl);
       }
 
       // Xử lý sự kiện đăng xuất
       const handleLogout = () => {
-        if (confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+        if (confirm("Bạn có chắc chắn muốn đăng xuất không?")) {
           if (window.Api) {
             window.Api.clearToken();
           } else {
-            localStorage.removeItem('accessToken');
+            localStorage.removeItem("accessToken");
           }
-          window.location.href = '/index.html';
+          window.location.href = "/index.html";
         }
       };
 
-      const btnSidebarLogout = document.getElementById('btnSidebarLogout');
-      const btnNavbarLogout = document.getElementById('btnNavbarLogout');
-      if (btnSidebarLogout) btnSidebarLogout.addEventListener('click', handleLogout);
-      if (btnNavbarLogout) btnNavbarLogout.addEventListener('click', handleLogout);
+      const btnSidebarLogout = document.getElementById("btnSidebarLogout");
+      const btnNavbarLogout = document.getElementById("btnNavbarLogout");
+      if (btnSidebarLogout)
+        btnSidebarLogout.addEventListener("click", handleLogout);
+      if (btnNavbarLogout)
+        btnNavbarLogout.addEventListener("click", handleLogout);
 
       // Xử lý toggle sidebar trên thiết bị di động
-      const toggleBtn = document.getElementById('sidebarToggle');
-      const sidebar = document.getElementById('adminSidebar');
-      const backdrop = document.getElementById('sidebarBackdrop');
+      const toggleBtn = document.getElementById("sidebarToggle");
+      const sidebar = document.getElementById("adminSidebar");
+      const backdrop = document.getElementById("sidebarBackdrop");
       if (toggleBtn && sidebar) {
         const toggleMenu = () => {
-          sidebar.classList.toggle('show');
-          if (backdrop) backdrop.classList.toggle('show');
+          sidebar.classList.toggle("show");
+          if (backdrop) backdrop.classList.toggle("show");
         };
-        toggleBtn.addEventListener('click', toggleMenu);
-        if (backdrop) backdrop.addEventListener('click', toggleMenu);
+        toggleBtn.addEventListener("click", toggleMenu);
+        if (backdrop) backdrop.addEventListener("click", toggleMenu);
       }
     },
 
     getPageTitle(active) {
       switch (active) {
-        case 'products': return 'Danh sách sản phẩm';
-        case 'product-form': return 'Thông tin sản phẩm';
-        case 'categories': return 'Quản lý danh mục';
-        case 'category-form': return 'Thông tin danh mục';
-        case 'dashboard': return 'Bảng điều khiển';
-        default: return 'Quản trị hệ thống';
+        case "products":
+          return "Danh sách sản phẩm";
+        case "product-form":
+          return "Thông tin sản phẩm";
+        case "categories":
+          return "Quản lý danh mục";
+        case "category-form":
+          return "Thông tin danh mục";
+        case "dashboard":
+          return "Bảng điều khiển";
+        case "users":
+          return "Quản lý nhân viên";
+        default:
+          return "Quản trị hệ thống";
       }
     },
   };
