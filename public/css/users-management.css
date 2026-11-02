@@ -1,0 +1,49 @@
+/* CSS riêng trang nhân viên; không ghi đè products-admin.css */
+.users-table {
+    min-width: 920px;
+}
+
+.users-table th {
+    white-space: nowrap;
+    font-size: .78rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: .025em;
+}
+
+.user-avatar {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #e8efff;
+    color: #3157a4;
+    font-weight: 700;
+    font-size: .85rem;
+}
+
+.user-avatar-lg {
+    width: 48px;
+    height: 48px;
+    flex-basis: 48px;
+    font-size: 1.1rem;
+}
+
+#paginationNav .page-link {
+    cursor: pointer;
+}
+
+#paginationNav .page-item.disabled .page-link {
+    cursor: not-allowed;
+}
+
+@media (max-width: 575.98px) {
+
+    .users-table td,
+    .users-table th {
+        padding: .65rem .55rem;
+    }
+}

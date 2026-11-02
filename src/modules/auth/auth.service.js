@@ -11,10 +11,10 @@ async function login(email, password) {
 
   // Tìm tài khoản trong database.
   const users = await query(
-    `SELECT id, full_name, email, password_hash, role
-     FROM users
-     WHERE email = ?
-     LIMIT 1`,
+    `SELECT id, full_name, email, password_hash, role, status
+   FROM users
+   WHERE email = ?
+   LIMIT 1`,
     [normalizedEmail],
   );
 
@@ -24,7 +24,10 @@ async function login(email, password) {
   if (!user) {
     throw AppError.unauthorized("Email hoặc mật khẩu không đúng");
   }
-
+  // Kiểm tra tài khoản có bị khóa không.
+  if (user.status === "LOCKED") {
+    throw AppError.forbidden("Tài khoản đã bị khóa");
+  }
   // So sánh mật khẩu với password_hash đã lưu.
   const passwordIsValid = await bcrypt.compare(password, user.password_hash);
 
