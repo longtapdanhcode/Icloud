@@ -24,10 +24,6 @@ async function login(email, password) {
   if (!user) {
     throw AppError.unauthorized("Email hoặc mật khẩu không đúng");
   }
-  // Kiểm tra tài khoản có bị khóa không.
-  if (user.status === "LOCKED") {
-    throw AppError.forbidden("Tài khoản đã bị khóa");
-  }
   // So sánh mật khẩu với password_hash đã lưu.
   const passwordIsValid = await bcrypt.compare(password, user.password_hash);
 
@@ -35,6 +31,10 @@ async function login(email, password) {
     throw AppError.unauthorized("Email hoặc mật khẩu không đúng");
   }
 
+  // Kiểm tra tài khoản có bị khóa không sau khi xác thực mật khẩu.
+  if (user.status === "LOCKED") {
+    throw AppError.forbidden("Tài khoản đã bị khóa");
+  }
   // Kiểm tra cấu hình JWT.
   if (!env.JWT_SECRET) {
     throw new Error("JWT_SECRET chưa được cấu hình trong file .env");
