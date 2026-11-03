@@ -1,6 +1,6 @@
 /**
  * Cloud Inventory - Common Layout Component
- * Tự động render Sidebar + Topbar vào <div id="app-layout">,
+ * Tự động render Sidebar + Topbar vào `<div id="app-layout">`,
  * tô sáng mục đang mở, ẩn menu ADMIN nếu user là STAFF, gắn nút Đăng xuất.
  */
 
@@ -9,7 +9,7 @@
     /**
      * Render layout hoàn chỉnh
      * @param {object} params
-     * @param {'products'|'product-form'|'categories'|'category-form'|'dashboard'} params.active
+     * @param {'products'|'product-form'|'categories'|'category-form'|'dashboard'|'users'} params.active
      * @param {object} params.user
      */
     render({ active = 'dashboard', user = null } = {}) {
@@ -73,6 +73,19 @@
                 <span>Thêm danh mục</span>
               </a>
             </li>
+
+            ${role === 'ADMIN'
+              ? `
+            <li class="menu-header">QUẢN TRỊ HỆ THỐNG</li>
+            <li class="menu-item">
+              <a href="/users.html" class="menu-link ${active === 'users' ? 'active' : ''}">
+                <i class="bi bi-people"></i>
+                <span>Quản lý nhân viên</span>
+              </a>
+            </li>
+              `
+              : ''
+            }
 
             <li class="menu-header">HỆ THỐNG</li>
             <li class="menu-item">
@@ -181,6 +194,7 @@
         case 'categories': return 'Quản lý danh mục';
         case 'category-form': return 'Thông tin danh mục';
         case 'dashboard': return 'Bảng điều khiển';
+        case 'users': return 'Quản lý nhân viên';
         default: return 'Quản trị hệ thống';
       }
     },

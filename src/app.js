@@ -46,6 +46,7 @@ if (env.isProduction) {
 
 // Mỗi module tự quản lý router của mình; chỉ cần sửa file routes trong module tương ứng
 app.use('/api/auth', require('./modules/auth/auth.routes'));
+app.use('/api/users', require('./modules/users/users.routes'));
 app.use('/api/products', require('./modules/products/products.routes'));
 app.use('/api/categories', require('./modules/categories/categories.routes'));
 app.use('/api/suppliers', require('./modules/suppliers/suppliers.routes'));

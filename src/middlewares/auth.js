@@ -2,9 +2,10 @@ const jwt = require("jsonwebtoken");
 
 const env = require("../config/env");
 const AppError = require("../utils/AppError");
+const { query } = require("../config/db");
 
-// Xác minh Bearer token trước khi cho phép truy cập API.
-function authenticate(req, res, next) {
+// Xác minh Bearer token và kiểm tra trạng thái tài khoản.
+async function authenticate(req, res, next) {
   const authorization = req.headers.authorization;
 
   // Yêu cầu header có dạng: Authorization: Bearer <token>
@@ -22,11 +23,13 @@ function authenticate(req, res, next) {
     return next(new Error("JWT_SECRET chưa được cấu hình"));
   }
 
+  let payload;
+
   try {
     // Kiểm tra chữ ký và thời hạn token.
-    const payload = jwt.verify(token, env.JWT_SECRET);
+    payload = jwt.verify(token, env.JWT_SECRET);
 
-    // Chỉ chấp nhận payload có đủ thông tin theo quy ước dự án.
+    // Kiểm tra cấu trúc payload.
     if (
       !payload ||
       typeof payload.id !== "number" ||
@@ -35,18 +38,37 @@ function authenticate(req, res, next) {
     ) {
       return next(AppError.unauthorized("Token không hợp lệ"));
     }
-
-    // Gắn thông tin người dùng vào request để controller dùng tiếp.
-    req.user = {
-      id: payload.id,
-      email: payload.email,
-      role: payload.role,
-    };
-
-    next();
   } catch (error) {
-    // Token hết hạn, sai chữ ký hoặc không hợp lệ.
     return next(AppError.unauthorized("Token không hợp lệ hoặc đã hết hạn"));
+  }
+
+  try {
+    // Lấy thông tin tài khoản mới nhất từ database.
+    const users = await query(
+      `SELECT id, full_name, email, role, status
+       FROM users
+       WHERE id = ?
+       LIMIT 1`,
+      [payload.id],
+    );
+
+    if (users.length === 0) {
+      return next(AppError.unauthorized("Tài khoản không tồn tại"));
+    }
+
+    const user = users[0];
+
+    // Kiểm tra tài khoản có bị khóa không.
+    if (user.status === "LOCKED") {
+      return next(AppError.forbidden("Tài khoản đã bị khóa"));
+    }
+
+    // Gắn thông tin mới nhất vào request.
+    req.user = user;
+
+    return next();
+  } catch (error) {
+    return next(error);
   }
 }
 
