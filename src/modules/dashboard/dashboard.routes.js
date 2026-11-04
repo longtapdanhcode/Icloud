@@ -1,11 +1,18 @@
-const { Router } = require("express");
+const { Router } = require('express');
+const { authenticate } = require('../../middlewares/auth');
+const { authorize } = require('../../middlewares/role');
+const dashboardController = require('./dashboard.controller');
 
 // Module: dashboard — phụ trách: Người 3
-// Endpoint dự kiến:
-//   GET /api/dashboard/summary
-//   GET /api/dashboard/low-stock
-// Gợi ý cấu trúc: dashboard.controller.js (đọc req, trả response) và dashboard.service.js (logic + SQL)
+// Phân quyền theo quy ước:
+// - Yêu cầu đăng nhập: authenticate
+// - GET: ADMIN và STAFF đều được phép xem
 
 const router = Router();
+
+router.use(authenticate, authorize('ADMIN', 'STAFF'));
+
+router.get('/summary', dashboardController.getSummary);
+router.get('/low-stock', dashboardController.getLowStock);
 
 module.exports = router;

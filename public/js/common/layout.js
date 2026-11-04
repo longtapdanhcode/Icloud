@@ -42,7 +42,7 @@
           <ul class="sidebar-menu">
             <li class="menu-header">TỔNG QUAN</li>
             <li class="menu-item">
-              <a href="/index.html" class="menu-link ${active === 'dashboard' ? 'active' : ''}">
+              <a href="/dashboard.html" class="menu-link ${active === 'dashboard' ? 'active' : ''}">
                 <i class="bi bi-speedometer2"></i>
                 <span>Bảng điều khiển</span>
               </a>

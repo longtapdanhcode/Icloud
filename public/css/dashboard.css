@@ -1,0 +1,73 @@
+/* Dashboard styles - dùng chung admin layout trong products-admin.css */
+.dashboard-page { padding-bottom: 2rem; }
+
+.dashboard-stat-card,
+.dashboard-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
+}
+
+.dashboard-stat-card {
+  min-height: 150px;
+  padding: 1.15rem;
+}
+
+.dashboard-stat-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-size: 1.15rem;
+  margin-bottom: .85rem;
+}
+.icon-blue { color: #2563eb; background: #dbeafe; }
+.icon-green { color: #15803d; background: #dcfce7; }
+.icon-purple { color: #7c3aed; background: #ede9fe; }
+.icon-orange { color: #c2410c; background: #ffedd5; }
+
+.dashboard-stat-label { color: #64748b; font-size: .85rem; }
+.dashboard-stat-value {
+  color: #0f172a;
+  font-size: 1.65rem;
+  font-weight: 700;
+  margin-top: .25rem;
+  overflow-wrap: anywhere;
+}
+.dashboard-money { font-size: clamp(1.05rem, 2vw, 1.45rem); }
+
+.dashboard-panel { padding: 1.2rem; }
+.dashboard-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.dashboard-chart-wrap { position: relative; height: 270px; }
+.dashboard-transaction-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+.dashboard-transaction-row:last-child { border-bottom: 0; }
+.dashboard-table thead th {
+  color: #64748b;
+  background: #f8fafc;
+  font-size: .78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dashboard-table tbody td { font-size: .88rem; }
+.dashboard-table .product-name { color: #0f172a; font-weight: 600; }
+
+@media (max-width: 575.98px) {
+  .dashboard-page { padding-left: .75rem; padding-right: .75rem; }
+  .dashboard-panel { padding: .9rem; }
+  .dashboard-chart-wrap { height: 230px; }
+}
