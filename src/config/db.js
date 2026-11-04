@@ -4,14 +4,14 @@ const env = require('./env');
 let pool;
 let sslWarned = false;
 
-// Cấu hình kết nối dùng chung cho app và scripts/migrate.js.
+// Cấu hình kết nối dùng chung cho app và các script (migrate, backup/restore).
 // mysql2 không hiểu tham số ssl-mode trong URL (Aiven có sẵn), nên bỏ nó đi và tự bật SSL.
-function connectionOptions() {
-  if (!env.DATABASE_URL) {
+function connectionOptions(databaseUrl = env.DATABASE_URL) {
+  if (!databaseUrl) {
     throw new Error('DATABASE_URL is not set');
   }
 
-  const url = new URL(env.DATABASE_URL);
+  const url = new URL(databaseUrl);
   const sslMode = (url.searchParams.get('ssl-mode') || '').toUpperCase();
   url.searchParams.delete('ssl-mode');
 

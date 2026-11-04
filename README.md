@@ -36,6 +36,9 @@ Không dùng Docker? Có thể cài MySQL 8 trực tiếp, tạo database `inven
 | `npm run db:migrate:new -- <ten>` | Tạo file migration mới để thay đổi schema |
 | `npm run db:seed` | Nạp dữ liệu mẫu (chạy lại không bị trùng) |
 | `npm run db:reset` | **Xóa toàn bộ bảng**, tạo lại và seed (chỉ dùng local) |
+| `npm run db:backup` | Sao lưu DB ra `backups/*.sql.gz` (cần Docker). Xem [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) |
+| `npm run db:restore -- <file>` | Khôi phục file backup vào DB local `inventory_restore` |
+| `npm run db:compare` | Đối chiếu DB gốc với bản khôi phục, từng bảng |
 | `BASE_URL=<url> npm run smoke` | Smoke test một môi trường đang chạy (mặc định `http://localhost:3000`) |
 
 ## Cấu trúc
@@ -69,7 +72,6 @@ Mỗi người chỉ làm trong thư mục module của mình. Router đã đư�
 - API: xem [docs/API_CONVENTIONS.md](docs/API_CONVENTIONS.md). Mọi response theo dạng `{ success, data, meta }` hoặc `{ success: false, error }`.
 - Lỗi: `throw AppError.notFound(...)`, `AppError.conflict('INSUFFICIENT_STOCK', ...)`. Express 5 tự bắt lỗi async, không cần `try/catch` trong controller.
 - Nghiệp vụ kho: dùng `db.withTransaction(async (conn) => { ... })`.
-- Đổi schema (thêm bảng/cột/index): **không sửa file migration cũ**, tạo file mới bằng `npm run db:migrate:new -- <ten>`. Xem [docs/DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md).
 - Đổi schema (thêm bảng/cột/index): **không sửa file migration cũ**, tạo file mới bằng `npm run db:migrate:new -- <ten>`. Xem [docs/DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md).
 
 ## Quy trình Git
