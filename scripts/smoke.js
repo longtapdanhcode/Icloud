@@ -99,6 +99,11 @@ async function main() {
     expect(res.status === 401, `status ${res.status}`);
   });
 
+  await check('GET /api/stock-transactions không token → 401', async () => {
+    const res = await call('/api/stock-transactions');
+    expect(res.status === 401, `status ${res.status}`);
+  });
+
   if (SMOKE_EMAIL && SMOKE_PASSWORD) {
     let token;
     await check('POST /api/auth/login → token', async () => {
@@ -111,12 +116,32 @@ async function main() {
       expect(token, 'không có token');
     });
 
+    let role;
     await check('GET /api/auth/me có token → 200', async () => {
       expect(token, 'bỏ qua vì đăng nhập thất bại');
       const res = await call('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } });
       expect(res.status === 200, `status ${res.status}`);
       expect(res.body.data?.email === SMOKE_EMAIL, `sai người dùng: ${res.body.data?.email}`);
+      role = res.body.data?.role;
     });
+
+    // Chỉ đọc dữ liệu, không tạo/sửa gì trên môi trường đang chạy
+    const auth = () => ({ headers: { Authorization: `Bearer ${token}` } });
+    for (const path of ['/api/products', '/api/categories', '/api/suppliers', '/api/stock-transactions']) {
+      await check(`GET ${path} → danh sách`, async () => {
+        expect(token, 'bỏ qua vì đăng nhập thất bại');
+        const res = await call(`${path}?limit=5`, auth());
+        expect(res.status === 200, `status ${res.status}: ${JSON.stringify(res.body).slice(0, 120)}`);
+        expect(Array.isArray(res.body.data), 'data không phải mảng');
+      });
+    }
+
+    if (role === 'STAFF') {
+      await check('STAFF gọi GET /api/users → 403', async () => {
+        const res = await call('/api/users', auth());
+        expect(res.status === 403, `status ${res.status}`);
+      });
+    }
   } else {
     console.log('(bỏ qua đăng nhập: chưa đặt SMOKE_EMAIL/SMOKE_PASSWORD)');
   }
