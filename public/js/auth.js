@@ -3,8 +3,6 @@ const loginButton = document.getElementById("loginButton");
 const loginMessage = document.getElementById("loginMessage");
 
 const loginView = document.getElementById("loginView");
-const appView = document.getElementById("appView");
-const logoutButton = document.getElementById("logoutButton");
 
 // Hiển thị thông báo trên giao diện.
 function showMessage(message, type = "danger") {
@@ -14,21 +12,7 @@ function showMessage(message, type = "danger") {
 
 // Chuyển sang giao diện đăng nhập.
 function showLogin() {
-  appView.classList.add("d-none");
   loginView.classList.remove("d-none");
-}
-
-// Hiển thị thông tin tài khoản đã xác thực.
-function showApp(user) {
-  document.getElementById("userName").textContent =
-    user.full_name || "Chưa cập nhật";
-
-  document.getElementById("userEmail").textContent = user.email || "";
-
-  document.getElementById("userRole").textContent = user.role || "";
-
-  loginView.classList.add("d-none");
-  appView.classList.remove("d-none");
 }
 
 // Gọi GET /api/auth/me để xác minh token và lấy thông tin user.
@@ -105,9 +89,8 @@ loginForm.addEventListener("submit", async function (event) {
     }
 
     // Gọi API /me để lấy thông tin người dùng từ Backend.
-    const user = await loadCurrentUser(data.token);
-
-    showApp(user);
+    await loadCurrentUser(data.token);
+    window.location.replace("/dashboard.html");
   } catch (error) {
     if (window.Api) {
       window.Api.clearToken();
@@ -120,18 +103,6 @@ loginForm.addEventListener("submit", async function (event) {
     loginButton.disabled = false;
     loginButton.textContent = "Đăng nhập";
   }
-});
-
-// Xử lý đăng xuất.
-logoutButton.addEventListener("click", function () {
-  if (window.Api) {
-    window.Api.clearToken();
-  } else {
-    localStorage.removeItem("accessToken");
-  }
-  loginForm.reset();
-  loginMessage.classList.add("d-none");
-  showLogin();
 });
 
 // Khôi phục giao diện khi tải lại trang nếu token vẫn hợp lệ.
@@ -152,8 +123,8 @@ async function initAuth() {
   }
 
   try {
-    const user = await loadCurrentUser(token);
-    showApp(user);
+    await loadCurrentUser(token);
+    window.location.replace("/dashboard.html");
   } catch (error) {
     if (window.Api) {
       window.Api.clearToken();

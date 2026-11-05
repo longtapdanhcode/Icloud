@@ -29,7 +29,7 @@
       const sidebarHtml = `
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
         <aside class="admin-sidebar" id="adminSidebar">
-          <a href="/index.html" class="sidebar-brand text-decoration-none">
+          <a href="/dashboard.html" class="sidebar-brand text-decoration-none">
             <div class="brand-icon">
               <i class="bi bi-boxes"></i>
             </div>
@@ -122,7 +122,7 @@
             </button>
             <nav aria-label="breadcrumb">
               <ol class="breadcrumb mb-0 small">
-                <li class="breadcrumb-item"><a href="/index.html" class="text-decoration-none text-muted">Trang chủ</a></li>
+                <li class="breadcrumb-item"><a href="/dashboard.html" class="text-decoration-none text-muted">Trang chủ</a></li>
                 <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">${this.getPageTitle(active)}</li>
               </ol>
             </nav>
