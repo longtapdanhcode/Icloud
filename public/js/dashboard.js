@@ -129,7 +129,9 @@
       const statusCell = document.createElement('td');
       statusCell.className = 'text-center';
       const badge = document.createElement('span');
-      badge.className = 'badge text-bg-warning';
+      badge.className = quantity === 0
+        ? 'badge text-bg-danger'
+        : 'badge text-bg-warning';
       badge.textContent = quantity === 0 ? 'Hết hàng' : 'Tồn thấp';
       statusCell.appendChild(badge);
       row.appendChild(statusCell);
