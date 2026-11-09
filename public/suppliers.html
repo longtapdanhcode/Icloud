@@ -1,0 +1,321 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quản lý nhà cung cấp - Cloud Inventory</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/products-admin.css">
+</head>
+
+<body>
+  <div id="app-layout"></div>
+
+  <main class="page-content">
+
+    <!-- Connection status -->
+    <div class="alert alert-light border shadow-sm d-flex align-items-center justify-content-between p-3 mb-4 rounded-3">
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-success-subtle text-success border px-2 py-2">
+          <i class="bi bi-hdd-network me-1"></i>MySQL Live
+        </span>
+        <div>
+          <div class="fw-semibold text-dark">Phân hệ Quản lý nhà cung cấp</div>
+          <div class="small text-muted">
+            Quản lý thông tin đối tác cung ứng thông qua REST API.
+          </div>
+        </div>
+      </div>
+      <span class="badge bg-primary-subtle text-primary border d-none d-md-inline-block">
+        REST API: /api/suppliers
+      </span>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+      <div class="col-sm-6 col-xl-4">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Tổng nhà cung cấp</span>
+            <i class="bi bi-truck text-secondary fs-5"></i>
+          </div>
+          <div class="stat-value" id="statTotalSuppliers">0</div>
+          <div class="stat-footer">Tổng số bản ghi trong hệ thống</div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-4">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Đang hiển thị</span>
+            <i class="bi bi-list-ul text-secondary fs-5"></i>
+          </div>
+          <div class="stat-value" id="statVisibleSuppliers">0</div>
+          <div class="stat-footer">Số nhà cung cấp trên trang hiện tại</div>
+        </div>
+      </div>
+
+      <div class="col-sm-6 col-xl-4">
+        <div class="stat-card">
+          <div class="stat-header">
+            <span class="stat-title">Vai trò hiện tại</span>
+            <i class="bi bi-shield-check text-secondary fs-5"></i>
+          </div>
+          <div class="stat-value fs-4" id="currentUserRole">...</div>
+          <div class="stat-footer">Quyền thao tác được kiểm soát bởi máy chủ</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main table card -->
+    <div class="card border-0 shadow-sm rounded-4">
+
+      <div class="card-header bg-white border-0 p-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div>
+            <h5 class="fw-bold mb-1">Danh sách nhà cung cấp</h5>
+            <p class="text-muted small mb-0">
+              Tra cứu và quản lý thông tin nhà cung cấp.
+            </p>
+          </div>
+
+          <button class="btn btn-primary" id="btnAddSupplier" type="button">
+            <i class="bi bi-plus-lg me-1"></i> Thêm nhà cung cấp
+          </button>
+        </div>
+      </div>
+
+      <div class="card-body px-4 pt-0">
+
+        <!-- Search -->
+        <div class="row g-2 mb-3">
+          <div class="col-md-8 col-lg-6">
+            <div class="input-group">
+              <span class="input-group-text bg-white">
+                <i class="bi bi-search"></i>
+              </span>
+              <input
+                type="search"
+                class="form-control"
+                id="searchInput"
+                placeholder="Tìm theo tên, số điện thoại hoặc email..."
+              >
+              <button class="btn btn-outline-secondary" id="clearSearchBtn" type="button">
+                Xóa
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-4 col-lg-3">
+            <select class="form-select" id="limitSelect">
+              <option value="10">10 bản ghi / trang</option>
+              <option value="20">20 bản ghi / trang</option>
+              <option value="50">50 bản ghi / trang</option>
+            </select>
+          </div>
+
+          <div class="col-md-12 col-lg-3 text-lg-end">
+            <button class="btn btn-outline-secondary" id="btnRefreshSuppliers" type="button">
+              <i class="bi bi-arrow-clockwise me-1"></i> Làm mới
+            </button>
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="supplierLoadingState" class="text-center py-5 d-none">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="text-muted mt-2 mb-0">Đang tải dữ liệu...</p>
+        </div>
+
+        <!-- Error -->
+        <div id="supplierErrorState" class="alert alert-danger d-none">
+          <div class="d-flex align-items-center justify-content-between gap-2">
+            <span id="supplierErrorMessage">Không thể tải dữ liệu.</span>
+            <button class="btn btn-sm btn-outline-danger" id="btnRetrySuppliers" type="button">
+              Thử lại
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty -->
+        <div id="supplierEmptyState" class="text-center py-5 d-none">
+          <i class="bi bi-truck display-4 text-secondary"></i>
+          <h6 class="fw-semibold mt-3">Chưa có nhà cung cấp</h6>
+          <p class="text-muted small mb-0">Thử thay đổi từ khóa tìm kiếm hoặc thêm nhà cung cấp mới.</p>
+        </div>
+
+        <!-- Table -->
+        <div id="supplierTableContainer" class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 70px;">ID</th>
+                <th>Tên nhà cung cấp</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+                <th>Địa chỉ</th>
+                <th class="text-end" style="width: 130px;">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="supplierTableBody">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                  Đang tải dữ liệu...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationContainer" class="d-flex flex-wrap align-items-center justify-content-between gap-3 mt-3">
+          <small class="text-muted" id="paginationSummary">Đang tải...</small>
+          <nav aria-label="Supplier pagination">
+            <ul class="pagination pagination-sm mb-0" id="paginationNav"></ul>
+          </nav>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Add/Edit modal -->
+  <div class="modal fade" id="supplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-4">
+
+        <div class="modal-header border-0 pb-0">
+          <div>
+            <h5 class="modal-title fw-bold" id="supplierModalTitle">Thêm nhà cung cấp</h5>
+            <p class="text-muted small mb-0">Nhập thông tin nhà cung cấp.</p>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <form id="supplierForm">
+          <div class="modal-body">
+
+            <input type="hidden" id="supplierId">
+
+            <div class="mb-3">
+              <label for="supplierName" class="form-label fw-semibold">
+                Tên nhà cung cấp <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="supplierName"
+                maxlength="150"
+                placeholder="Nhập tên nhà cung cấp"
+                required
+              >
+              <div class="form-text">Tối đa 150 ký tự.</div>
+            </div>
+
+            <div class="mb-3">
+              <label for="supplierPhone" class="form-label fw-semibold">Số điện thoại</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="supplierPhone"
+                maxlength="20"
+                placeholder="Nhập số điện thoại"
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="supplierEmail" class="form-label fw-semibold">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="supplierEmail"
+                maxlength="150"
+                placeholder="example@email.com"
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="supplierAddress" class="form-label fw-semibold">Địa chỉ</label>
+              <textarea
+                class="form-control"
+                id="supplierAddress"
+                rows="3"
+                maxlength="255"
+                placeholder="Nhập địa chỉ nhà cung cấp"
+              ></textarea>
+            </div>
+
+            <div class="alert alert-danger py-2 small d-none" id="supplierFormError"></div>
+          </div>
+
+          <div class="modal-footer border-0 pt-0">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+              Hủy
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnSaveSupplier">
+              <span class="spinner-border spinner-border-sm me-1 d-none" id="supplierSaveSpinner"></span>
+              <i class="bi bi-check-lg me-1" id="supplierSaveIcon"></i>
+              <span id="supplierSaveText">Lưu nhà cung cấp</span>
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirmation modal -->
+  <div class="modal fade" id="deleteSupplierModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow rounded-4">
+
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold">Xác nhận xóa</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          Bạn có chắc chắn muốn xóa nhà cung cấp
+          <strong id="deleteSupplierTargetName"></strong>?
+          <div class="alert alert-warning small mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Nếu nhà cung cấp đã được sử dụng trong phiếu nhập kho, máy chủ có thể từ chối thao tác xóa.
+          </div>
+          <div class="alert alert-danger small mt-3 mb-0 d-none" id="deleteSupplierError"></div>
+        </div>
+
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-danger" id="btnConfirmDeleteSupplier">
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="deleteSupplierSpinner"></span>
+            <i class="bi bi-trash me-1" id="deleteSupplierIcon"></i>
+            <span id="deleteSupplierBtnText">Xác nhận xóa</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1090;">
+    <div id="appToast" class="toast align-items-center text-bg-success border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body" id="appToastBody">
+          <i class="bi bi-check-circle-fill me-2"></i>
+          <span id="appToastMessage">Thao tác thành công!</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/common/api.js"></script>
+  <script src="/js/common/layout.js"></script>
+  <script src="/js/suppliers-ui.js"></script>
+</body>
+</html>
