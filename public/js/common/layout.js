@@ -73,6 +73,21 @@
                 <span>Thêm danh mục</span>
               </a>
             </li>
+            <li class="menu-header">QUẢN LÝ NHÀ CUNG CẤP & KHO</li>
+
+            <li class="menu-item">
+              <a href="/suppliers.html" class="menu-link ${active === 'suppliers' ? 'active' : ''}">
+                <i class="bi bi-truck"></i>
+                <span>Nhà cung cấp</span>
+              </a>
+            </li>
+
+            <li class="menu-item">
+              <a href="/stock-transactions.html" class="menu-link ${active === 'stock-transactions' ? 'active' : ''}">
+                <i class="bi bi-arrow-left-right"></i>
+                <span>Nhập / Xuất kho</span>
+              </a>
+            </li>
 
             ${role === 'ADMIN'
               ? `
@@ -195,7 +210,10 @@
         case 'category-form': return 'Thông tin danh mục';
         case 'dashboard': return 'Bảng điều khiển';
         case 'users': return 'Quản lý nhân viên';
+        case 'suppliers': return 'Quản lý nhà cung cấp';
+        case 'stock-transactions': return 'Quản lý nhập / xuất kho';
         default: return 'Quản trị hệ thống';
+        
       }
     },
   };
