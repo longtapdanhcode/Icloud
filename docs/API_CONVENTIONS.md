@@ -67,7 +67,7 @@ Lỗi MySQL `ER_DUP_ENTRY` và `ER_ROW_IS_REFERENCED_2` được errorHandler t�
 
 - Header: `Authorization: Bearer <token>`.
 - JWT payload: `{ id, email, role }`.
-- Middleware (Người 3 cung cấp): `authenticate` và `authorize('ADMIN')` / `authorize('ADMIN', 'STAFF')`.
+- Middleware: `authenticate` và `authorize('ADMIN')` / `authorize('ADMIN', 'STAFF')`.
 
 ## 5. Ma trận quyền (đề xuất)
 
@@ -81,7 +81,7 @@ Lỗi MySQL `ER_DUP_ENTRY` và `ER_ROW_IS_REFERENCED_2` được errorHandler t�
 | GET dashboard | ✓ | ✓ |
 | Quản lý users (nếu làm) | ✓ | ✗ |
 
-## 6. Nghiệp vụ kho (Người 2)
+## 6. Nghiệp vụ kho
 
 `POST /api/stock-transactions`:
 

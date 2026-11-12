@@ -277,6 +277,24 @@ test('GET /api/categories - chặn 401 khi không truyền Authorization header'
   assert.equal(res.body.success, false);
 });
 
+test('POST /api/categories - chặn 403 khi tài khoản STAFF cố gắng thêm danh mục', async () => {
+  const res = await rawSupertest(app)
+    .post('/api/categories')
+    .set('Authorization', `Bearer ${staffToken}`)
+    .send({ name: 'TEST_STAFF_FORBIDDEN' });
+  assert.equal(res.status, 403);
+  assert.equal(res.body.success, false);
+});
+
+test('PUT /api/categories/:id - chặn 403 khi tài khoản STAFF cố gắng sửa danh mục', async () => {
+  const res = await rawSupertest(app)
+    .put('/api/categories/1')
+    .set('Authorization', `Bearer ${staffToken}`)
+    .send({ name: 'TEST_STAFF_FORBIDDEN_EDIT' });
+  assert.equal(res.status, 403);
+  assert.equal(res.body.success, false);
+});
+
 test('DELETE /api/categories/:id - chặn 403 khi tài khoản STAFF cố gắng xóa danh mục', async () => {
   const res = await rawSupertest(app)
     .delete('/api/categories/1')

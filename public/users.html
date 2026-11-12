@@ -15,16 +15,16 @@
     <div id="app-layout"></div>
     <main class="page-content">
         <div
-            class="alert alert-light border shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4 rounded-3">
+            class="alert alert-light border shadow-sm d-flex justify-content-between align-items-center flex-wrap gap-3 p-3 mb-4 rounded-3" role="status">
             <div class="d-flex align-items-center gap-3"><span
-                    class="badge bg-success-subtle text-success border px-2 py-2"><i
-                        class="bi bi-shield-lock me-1"></i>ADMIN ONLY</span>
+                    class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-2 py-2"><i
+                        class="bi bi-shield-lock me-1" aria-hidden="true"></i>ADMIN ONLY</span>
                 <div>
-                    <div class="fw-semibold">Quản lý nhân viên</div>
+                    <h1 class="h6 fw-semibold mb-0">Quản lý nhân viên</h1>
                     <div class="small text-muted">Quản lý tài khoản STAFF, trạng thái và quyền truy cập.</div>
                 </div>
             </div>
-            <span class="badge bg-primary-subtle text-primary border">REST API: /api/users</span>
+            <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle">REST API: /api/users</span>
         </div>
 
         <section class="row g-3 mb-4" aria-label="Thống kê nhân viên">
@@ -75,10 +75,10 @@
                 <div class="row g-2 align-items-center">
                     <div class="col-lg-6">
                         <div class="input-group"><span class="input-group-text bg-white"><i
-                                    class="bi bi-search"></i></span><input id="userSearch" class="form-control"
-                                type="search" placeholder="Tìm theo họ tên hoặc email..."><button
-                                class="btn btn-outline-secondary" id="clearSearchBtn" type="button"><i
-                                    class="bi bi-x-lg"></i></button></div>
+                                    class="bi bi-search" aria-hidden="true"></i></span><input id="userSearch" class="form-control"
+                                type="search" aria-label="Tìm kiếm nhân viên" placeholder="Tìm theo họ tên hoặc email..."><button
+                                class="btn btn-outline-secondary" id="clearSearchBtn" type="button" title="Xóa tìm kiếm" aria-label="Xóa tìm kiếm"><i
+                                    class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                     </div>
                     <div class="col-6 col-lg-3"><select id="userStatusFilter" class="form-select"
                             aria-label="Lọc trạng thái">
@@ -94,7 +94,7 @@
                             <option value="50">50 / trang</option>
                         </select></div>
                     <div class="col-lg-1 d-grid"><button class="btn btn-outline-primary" id="refreshUsersBtn"
-                            type="button" title="Tải lại"><i class="bi bi-arrow-clockwise"></i></button></div>
+                            type="button" title="Tải lại" aria-label="Tải lại danh sách nhân viên"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i></button></div>
                 </div>
             </div>
             <div id="usersAlertContainer" class="px-3 pt-3"></div>

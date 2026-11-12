@@ -5,7 +5,6 @@ const AppError = require('../../utils/AppError');
 
 /**
  * Controller: Products
- * Phụ trách: Người 1
  */
 
 const ALLOWED_SORTS = ['name', 'price', 'quantity', 'created_at', 'id'];

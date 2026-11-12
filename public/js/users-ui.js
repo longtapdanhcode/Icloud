@@ -37,14 +37,14 @@
     bootstrap.Toast.getOrCreateInstance(el, { delay: 3500 }).show();
   }
   function dateText(v) {
-    if (!v) return "—";
+    if (!v) return "--";
     const d = new Date(v);
     return Number.isNaN(d.getTime()) ? esc(v) : d.toLocaleString("vi-VN");
   }
   function statusBadge(s) {
     return s === "LOCKED"
-      ? '<span class="badge bg-danger-subtle text-danger border">Đã khóa</span>'
-      : '<span class="badge bg-success-subtle text-success border">Đang hoạt động</span>';
+      ? '<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">Đã khóa</span>'
+      : '<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Đang hoạt động</span>';
   }
   function view(name) {
     ["loading", "error", "empty", "table"].forEach((v) => {
@@ -73,7 +73,7 @@
     } catch (e) {
       console.warn("Statistics API:", e);
       ["staffTotal", "staffActive", "staffLocked", "staffNewThisMonth"].forEach(
-        (id) => ($(id).textContent = "—"),
+        (id) => ($(id).textContent = "--"),
       );
     }
   }
@@ -133,14 +133,14 @@
           name = esc(u.full_name),
           email = esc(u.email);
         return `<tr><td class="text-muted">${(state.page - 1) * state.limit + i + 1}</td>
-      <td><div class="d-flex align-items-center gap-2"><span class="user-avatar">${esc((u.full_name || "N").trim().charAt(0).toUpperCase())}</span><span class="fw-semibold">${name}</span></div></td>
-      <td>${email}</td><td><span class="badge bg-info-subtle text-info border">${esc(u.role || "STAFF")}</span></td>
+      <td><div class="d-flex align-items-center gap-2"><span class="user-avatar" aria-hidden="true">${esc((u.full_name || "N").trim().charAt(0).toUpperCase())}</span><span class="fw-semibold">${name}</span></div></td>
+      <td>${email}</td><td><span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">${esc(u.role || "STAFF")}</span></td>
       <td>${statusBadge(status)}</td><td class="small text-muted">${dateText(u.created_at)}</td>
       <td><div class="d-flex justify-content-end gap-1 flex-wrap">
-      <button class="btn btn-sm btn-outline-secondary" data-action="detail" data-id="${id}" title="Xem"><i class="bi bi-eye"></i></button>
-      <button class="btn btn-sm btn-outline-primary" data-action="edit" data-id="${id}" title="Sửa"><i class="bi bi-pencil"></i></button>
-      <button class="btn btn-sm btn-outline-warning" data-action="password" data-id="${id}" data-name="${name}" data-email="${email}" title="Đặt lại mật khẩu"><i class="bi bi-key"></i></button>
-      <button class="btn btn-sm ${status === "LOCKED" ? "btn-outline-success" : "btn-outline-danger"}" data-action="status" data-id="${id}" data-status="${status}" data-name="${name}" title="${status === "LOCKED" ? "Mở khóa" : "Khóa"}"><i class="bi ${status === "LOCKED" ? "bi-unlock" : "bi-lock"}"></i></button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" data-action="detail" data-id="${id}" title="Xem" aria-label="Xem thông tin ${name}"><i class="bi bi-eye" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-sm btn-outline-primary" data-action="edit" data-id="${id}" title="Sửa" aria-label="Chỉnh sửa ${name}"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-sm btn-outline-warning" data-action="password" data-id="${id}" data-name="${name}" data-email="${email}" title="Đặt lại mật khẩu" aria-label="Đặt lại mật khẩu ${name}"><i class="bi bi-key" aria-hidden="true"></i></button>
+      <button type="button" class="btn btn-sm ${status === "LOCKED" ? "btn-outline-success" : "btn-outline-danger"}" data-action="status" data-id="${id}" data-status="${status}" data-name="${name}" title="${status === "LOCKED" ? "Mở khóa" : "Khóa"}" aria-label="${status === "LOCKED" ? "Mở khóa" : "Khóa"} tài khoản ${name}"><i class="bi ${status === "LOCKED" ? "bi-unlock" : "bi-lock"}" aria-hidden="true"></i></button>
       </div></td></tr>`;
       })
       .join("");
@@ -175,7 +175,7 @@
           state.total || from + result.rows.length - 1,
         );
       $("paginationSummary").textContent =
-        `Hiển thị ${from}–${to} trong ${state.total} nhân viên`;
+        `Hiển thị ${from} - ${to} trong ${state.total} nhân viên`;
       pagination();
       view("table");
     } catch (e) {

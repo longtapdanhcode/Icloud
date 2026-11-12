@@ -48,16 +48,16 @@ src/
 ├── app.js                 # cấu hình Express, gắn router các module
 ├── server.js              # khởi động server, tắt an toàn khi redeploy
 ├── config/                # env.js (biến môi trường), db.js (pool MySQL, withTransaction)
-├── middlewares/           # errorHandler.js (+ auth.js, role.js do Người 3 thêm)
+├── middlewares/           # errorHandler.js, auth.js, role.js
 ├── utils/                 # response.js, AppError.js, pagination.js
 └── modules/
-    ├── health/            # GET /health                   — Người 4
-    ├── auth/              # /api/auth                     — Người 3
-    ├── products/          # /api/products                 — Người 1
-    ├── categories/        # /api/categories               — Người 1
-    ├── suppliers/         # /api/suppliers                — Người 2
-    ├── inventory/         # /api/stock-transactions       — Người 2
-    └── dashboard/         # /api/dashboard                — Người 3
+    ├── health/            # GET /health
+    ├── auth/              # /api/auth
+    ├── products/          # /api/products
+    ├── categories/        # /api/categories
+    ├── suppliers/         # /api/suppliers
+    ├── inventory/         # /api/stock-transactions
+    └── dashboard/         # /api/dashboard
 public/                    # frontend tĩnh (HTML/CSS/JS)
 db/migrations/             # thay đổi schema theo thứ tự (xem docs/DATABASE_MIGRATIONS.md)
 scripts/                   # migrate.js, seed.js

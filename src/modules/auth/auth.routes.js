@@ -1,13 +1,7 @@
-// const { Router } = require('express');
-// const router = Router();
-
-// module.exports = router;
-
-// // Module: auth — phụ trách: Người 3
-// // Endpoint dự kiến:
-// //   POST /api/auth/login
-// //   GET  /api/auth/me
-// // Gợi ý cấu trúc: auth.controller.js (đọc req, trả response) và auth.service.js (logic + SQL)
+// Module: auth
+// Endpoint dự kiến:
+//   POST /api/auth/login
+//   GET  /api/auth/me
 
 const express = require("express");
 

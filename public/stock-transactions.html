@@ -25,20 +25,20 @@
     <section class="mb-4">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div>
-          <h3 class="fw-bold mb-1">Quản lý nhập / xuất kho</h3>
+          <h1 class="h4 fw-bold mb-1">Quản lý nhập / xuất kho</h1>
           <p class="text-muted mb-0">
             Theo dõi giao dịch nhập kho, xuất kho và biến động tồn kho.
           </p>
         </div>
 
         <div class="d-flex gap-2">
-          <button class="btn btn-success" id="btn-create-in">
-            <i class="bi bi-box-arrow-in-down me-1"></i>
+          <button type="button" class="btn btn-success" id="btn-create-in">
+            <i class="bi bi-box-arrow-in-down me-1" aria-hidden="true"></i>
             Tạo phiếu nhập
           </button>
 
-          <button class="btn btn-primary" id="btn-create-out">
-            <i class="bi bi-box-arrow-up me-1"></i>
+          <button type="button" class="btn btn-primary" id="btn-create-out">
+            <i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>
             Tạo phiếu xuất
           </button>
         </div>
@@ -51,7 +51,7 @@
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-title">Tổng giao dịch</span>
-            <i class="bi bi-arrow-left-right"></i>
+            <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
           </div>
           <div class="stat-value" id="stat-total">--</div>
           <div class="stat-footer">Số phiếu theo bộ lọc hiện tại</div>
@@ -62,10 +62,10 @@
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-title">Phiếu nhập kho</span>
-            <i class="bi bi-box-arrow-in-down"></i>
+            <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
           </div>
           <div class="stat-value text-success" id="stat-in">--</div>
-          <div class="stat-footer">Số phiếu nhập trong kết quả</div>
+          <div class="stat-footer">Số phiếu nhập trên trang hiện tại</div>
         </div>
       </div>
 
@@ -73,10 +73,10 @@
         <div class="stat-card">
           <div class="stat-header">
             <span class="stat-title">Phiếu xuất kho</span>
-            <i class="bi bi-box-arrow-up"></i>
+            <i class="bi bi-box-arrow-up" aria-hidden="true"></i>
           </div>
           <div class="stat-value text-primary" id="stat-out">--</div>
-          <div class="stat-footer">Số phiếu xuất trong kết quả</div>
+          <div class="stat-footer">Số phiếu xuất trên trang hiện tại</div>
         </div>
       </div>
     </section>
@@ -86,14 +86,14 @@
       <div class="card-body p-4">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
           <div>
-            <h5 class="fw-bold mb-1">Lịch sử giao dịch kho</h5>
+            <h2 class="h5 fw-bold mb-1">Lịch sử giao dịch kho</h2>
             <p class="text-muted mb-0">
               Tra cứu các phiếu nhập và xuất kho.
             </p>
           </div>
 
-          <button class="btn btn-outline-secondary" id="btn-refresh">
-            <i class="bi bi-arrow-clockwise me-1"></i>
+          <button type="button" class="btn btn-outline-secondary" id="btn-refresh">
+            <i class="bi bi-arrow-clockwise me-1" aria-hidden="true"></i>
             Làm mới
           </button>
         </div>
@@ -166,11 +166,11 @@
           </small>
 
           <div class="btn-group">
-            <button class="btn btn-outline-secondary btn-sm" id="btn-prev">
-              <i class="bi bi-chevron-left"></i>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-prev" aria-label="Trang trước">
+              <i class="bi bi-chevron-left" aria-hidden="true"></i>
             </button>
-            <button class="btn btn-outline-secondary btn-sm" id="btn-next">
-              <i class="bi bi-chevron-right"></i>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-next" aria-label="Trang sau">
+              <i class="bi bi-chevron-right" aria-hidden="true"></i>
             </button>
           </div>
         </div>

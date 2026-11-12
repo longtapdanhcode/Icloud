@@ -4,7 +4,6 @@ const AppError = require('../../utils/AppError');
 
 /**
  * Controller: Categories
- * Phụ trách: Người 1
  */
 
 /**

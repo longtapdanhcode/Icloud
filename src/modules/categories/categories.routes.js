@@ -3,12 +3,11 @@ const { authenticate } = require('../../middlewares/auth');
 const { authorize } = require('../../middlewares/role');
 const categoriesController = require('./categories.controller');
 
-// Module: categories — phụ trách: Người 1
+// Module: categories
 // Phân quyền theo quy ước:
 // - Tất cả route yêu cầu: authenticate
 // - GET: ADMIN, STAFF
-// - POST, PUT: ADMIN, STAFF
-// - DELETE: ADMIN (STAFF không được phép xóa danh mục)
+// - POST, PUT, DELETE: chỉ ADMIN (STAFF chỉ có quyền xem danh mục)
 
 const router = Router();
 
@@ -17,8 +16,8 @@ router.use(authenticate);
 
 router.get('/', categoriesController.getCategories);
 router.get('/:id', categoriesController.getCategoryById);
-router.post('/', authorize('ADMIN', 'STAFF'), categoriesController.createCategory);
-router.put('/:id', authorize('ADMIN', 'STAFF'), categoriesController.updateCategory);
+router.post('/', authorize('ADMIN'), categoriesController.createCategory);
+router.put('/:id', authorize('ADMIN'), categoriesController.updateCategory);
 router.delete('/:id', authorize('ADMIN'), categoriesController.deleteCategory);
 
 module.exports = router;

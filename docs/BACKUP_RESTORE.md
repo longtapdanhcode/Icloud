@@ -101,7 +101,7 @@ Dùng mẫu này cho mỗi lần khôi phục thử. Bản đã điền của l�
 | Mục | Nội dung |
 |---|---|
 | Ngày giờ | 04/11/2026, 16:40 (giờ Việt Nam), tức 09:40 UTC |
-| Người thực hiện | Long (Người 4) |
+| Người thực hiện | Long |
 | DB nguồn | Aiven MySQL `mysql-icloud-icloud`, database `defaultdb` (production) |
 | DB đích | `inventory_restore` trên MySQL 8.4 local (Docker) |
 | File backup | `defaultdb-mysql-icloud-icloud-20261104-094023Z.sql.gz` (cất ngoài Git) |

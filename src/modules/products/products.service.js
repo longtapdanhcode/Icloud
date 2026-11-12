@@ -2,7 +2,6 @@ const db = require('../../config/db');
 
 /**
  * Service: Products
- * Phụ trách: Người 1
  * Thực hiện truy vấn MySQL bằng parameterized queries
  */
 
