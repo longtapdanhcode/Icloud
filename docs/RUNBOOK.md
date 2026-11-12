@@ -7,6 +7,7 @@ Hướng dẫn xử lý các việc vận hành thường gặp với bản prod
 | Web app | Render, service `cloud-inventory`, https://cloud-inventory-ruyb.onrender.com |
 | Database | Aiven MySQL 8, service `mysql-icloud-icloud`, database `defaultdb` |
 | Code, CI, smoke test | GitHub `longtapdanhcode/Icloud`, tab **Actions** |
+| Giữ app không tắt, báo khi app chết | UptimeRobot, monitor HTTP(s) gọi `/health` 5 phút một lần, gửi email cho Long |
 | Secret | Render → Environment (`DATABASE_URL`, `DB_CA_CERT`, `JWT_SECRET`), GitHub → Settings → Secrets (`SMOKE_EMAIL`, `SMOKE_PASSWORD`) |
 
 Người phụ trách: Long (Người 4). Quyền admin trên Render, Aiven và GitHub hiện chỉ có Long.

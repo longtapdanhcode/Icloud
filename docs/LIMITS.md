@@ -21,9 +21,9 @@ Số liệu giới hạn lấy từ tài liệu chính thức của Render, Aive
 | Khởi động lại | Render ghi khoảng 1 phút | Đo thực tế: 1–3 phút (11/11: khoảng 2.5 phút) | **Rủi ro cho demo** |
 | Số instance | 1, không scale | 1 | Đủ cho quy mô cửa hàng nhỏ |
 | Ổ đĩa | Tạm thời, mất khi restart hoặc redeploy | Không ghi file, mọi dữ liệu nằm trong MySQL | Không ảnh hưởng |
-| Băng thông, phút build | Có hạn mức theo tháng của workspace (xem Billing) | Trang tĩnh nhỏ, build `npm ci` khoảng 1 phút | Xa hạn mức |
+| Băng thông, phút build | Có hạn mức theo tháng của workspace (xem Billing) | Băng thông ra 8 MB trong tháng 11 (tính đến 12/11). Build `npm ci` khoảng 1 phút | Xa hạn mức |
 | Maintenance Mode, shell, one-off job | Không có | — | Khôi phục DB phải dùng **Suspend** thay cho Maintenance Mode |
-| CPU/RAM | Xem bảng baseline bên dưới | | |
+| Xem CPU/RAM | Không có: trang Metrics chỉ hiện băng thông, CPU/RAM chỉ có ở gói trả phí | — | Xem mục baseline bên dưới |
 
 **Khi vượt giới hạn:**
 - Hết 750 giờ: mọi service Free bị tạm dừng đến đầu tháng sau.
@@ -33,7 +33,7 @@ Số liệu giới hạn lấy từ tài liệu chính thức của Render, Aive
 
 **Xử lý việc khởi động chậm:**
 - Trước demo hoặc nghiệm thu: mở `/health` trước 5 phút, chờ thấy `"db":"up"`.
-- Trong tuần demo: dùng dịch vụ ping miễn phí (ví dụ UptimeRobot) gọi `/health` 5 phút một lần để app không tắt. App chạy liên tục tốn khoảng 720 giờ/tháng, vẫn trong hạn mức 750 giờ. Dịch vụ ping còn gửi email khi app không phản hồi.
+- Từ 12/11/2026 đã bật UptimeRobot (gói Free) gọi `/health` 5 phút một lần để app không tắt. App chạy liên tục tốn khoảng 720 giờ/tháng, vẫn trong hạn mức 750 giờ. UptimeRobot còn gửi email cho Người 4 khi app không phản hồi.
 - Lâu dài: gói Starter của Render không tắt khi rảnh (có phí, kiểm tra giá trên render.com/pricing).
 
 ## Aiven (MySQL)
@@ -63,18 +63,15 @@ Lưu ý: GitHub tự tắt workflow chạy theo lịch (smoke test hằng ngày)
 
 ## Baseline hiệu năng
 
-Đo trên production. CPU/RAM lấy từ Render → service → **Metrics**, khung 7 ngày.
+Đo trên production. Render Free không hiển thị CPU/RAM, nên baseline dùng thời gian phản hồi và băng thông.
 
 | Chỉ số | Giá trị | Ngày đo |
 |---|---|---|
-| RAM khi chạy bình thường | _(điền từ Render Metrics)_ | |
-| RAM cao nhất | _(điền)_ | |
-| CPU khi chạy bình thường | _(điền)_ | |
-| CPU cao nhất | _(điền)_ | |
 | `/health` khi app đang chạy | 0.3–0.4 giây | 11/11/2026 |
 | API danh sách (products, suppliers, stock-transactions), qua smoke test | 0.3–0.5 giây | 09/11/2026 |
 | `POST /api/auth/login` (bcrypt) | 0.8–0.9 giây | 09/11/2026 |
-| Lần mở đầu sau khi app tắt | khoảng 2.5 phút | 11/11/2026 |
+| Lần mở đầu sau khi app tắt | 23 giây đến khoảng 2.5 phút | 11–12/11/2026 |
+| Băng thông ra (Render Metrics, 7 ngày) | 8 MB trong tháng, cao nhất khoảng 5.5 MB/giờ ngày 11/11 | 12/11/2026 |
 
 Ảnh chụp metrics lưu kèm báo cáo cuối kỳ.
 
