@@ -59,7 +59,7 @@ PR → GitHub Actions chạy test → merge `main` → CI xanh → Render build 
 | CPU/RAM, số request | Render → service → **Metrics** |
 | Rollback | Render → **Events** → chọn deploy cũ → **Rollback** |
 | Metrics và log MySQL | Aiven → service → **Metrics** / **Logs** |
-| Backup MySQL | Aiven tự backup. Thêm `mysqldump` thủ công ở tuần 4 (RUNBOOK) |
+| Backup MySQL | `npm run db:backup`, xem [BACKUP_RESTORE.md](BACKUP_RESTORE.md). Gói Free của Aiven không có restore trên dashboard |
 | Smoke test | GitHub → Actions → **Smoke test (production)** → Run workflow, hoặc `BASE_URL=<domain> npm run smoke` |
 
 ### Đọc log
@@ -76,7 +76,7 @@ PR → GitHub Actions chạy test → merge `main` → CI xanh → Render build 
 
 ### Smoke test
 
-Workflow `.github/workflows/smoke.yml` chạy lúc 08:00 giờ Việt Nam mỗi ngày, hoặc khi bấm **Run workflow**. Nó kiểm tra: `/health` (app và DB), trang chủ, header bảo mật, chuẩn lỗi 404, `/api/auth/me` khi không có token.
+Workflow `.github/workflows/smoke.yml` chạy lúc 08:00 giờ Việt Nam mỗi ngày, hoặc khi bấm **Run workflow**. Nó kiểm tra 13 mục: `/health` (app và DB), trang chủ, header bảo mật, chuẩn lỗi 404, API khi không có token (401), đăng nhập, danh sách sản phẩm, danh mục, nhà cung cấp, phiếu kho, và STAFF bị chặn ở `/api/users` (403).
 
 Để smoke test thử cả đăng nhập, thêm 2 secret trong GitHub → Settings → Secrets and variables → Actions:
 `SMOKE_EMAIL`, `SMOKE_PASSWORD` (nên dùng tài khoản STAFF).
@@ -92,12 +92,12 @@ Workflow này **không chạy khi push**. Render chỉ deploy khi mọi check c�
 
 ## Giới hạn gói Free cần biết
 
-- **Render tắt app sau 15 phút không có request**, lần truy cập sau chờ khoảng 1 phút. Trước demo/nghiệm thu, mở web trước vài phút.
-- Render Free có 750 giờ chạy mỗi tháng, đủ cho 1 service chạy liên tục.
-- Render Free không lưu file trên ổ đĩa: mọi dữ liệu phải nằm trong MySQL. Upload ảnh (phần mở rộng) cần dịch vụ lưu trữ ngoài.
-- Aiven Free: 1 CPU, 1 GB RAM, 1 GB ổ đĩa. Có thể bị tắt nếu lâu không dùng, Aiven báo trước qua email và bật lại được.
+Render tắt app sau 15 phút không có request, lần mở sau chờ 1–3 phút. Aiven Free có thể tắt DB khi lâu không dùng. Chi tiết và cách xử lý: [LIMITS.md](LIMITS.md).
 
 ## Xử lý sự cố
+
+Xem thêm [RUNBOOK.md](RUNBOOK.md).
+
 
 | Triệu chứng | Nguyên nhân thường gặp |
 |---|---|
