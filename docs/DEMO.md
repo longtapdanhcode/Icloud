@@ -35,7 +35,7 @@ Thời lượng khoảng 15 phút: 10 phút nghiệp vụ trên web, 5 phút ph�
 | 9 | Tạo phiếu xuất `DEMO-01` số lượng 40, rồi xem chi tiết phiếu trong lịch sử | Tồn còn 10, dưới mức tối thiểu 20. Lịch sử lọc được theo loại, ngày, sản phẩm | Người 2 |
 | 10 | Quay lại dashboard | Tổng sản phẩm tăng 1, `DEMO-01` xuất hiện trong bảng tồn thấp, biểu đồ có thêm 1 nhập và 1 xuất | Người 3 |
 | 11 | Nhân viên → thêm một STAFF mới, sau đó khóa tài khoản đó | ADMIN quản lý nhân viên. Tài khoản bị khóa không đăng nhập được nữa, kể cả token cũ cũng bị chặn | Người 3 |
-| 12 | Cửa sổ ẩn danh: đăng nhập STAFF | Không có menu Nhân viên. Không có nút xóa sản phẩm, không thêm/sửa/xóa nhà cung cấp. Vẫn tạo được phiếu kho | Người 3 |
+| 12 | Cửa sổ ẩn danh: đăng nhập STAFF | Không có menu Nhân viên và Thêm danh mục. Không có nút xóa sản phẩm, không thêm/sửa/xóa danh mục và nhà cung cấp. Vẫn thêm/sửa được sản phẩm và tạo được phiếu kho | Người 3 |
 
 ## Phần 2: Cloud và vận hành (khoảng 5 phút, Người 4)
 
