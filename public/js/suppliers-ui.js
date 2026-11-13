@@ -5,14 +5,14 @@
  */
 
 const SupplierApi = {
-    async list({ page = 1, limit = 10, search = '' } = {}) {
+    async list({ page = 1, limit = 10, search = '' } = {}, signal = null) {
       const params = new URLSearchParams({
         page: String(page),
         limit: String(limit),
         search,
       });
   
-      return window.Api.request(`/api/suppliers?${params.toString()}`);
+      return window.Api.request(`/api/suppliers?${params.toString()}`, { signal });
     },
   
     async create(data) {
@@ -233,11 +233,11 @@ const SupplierApi = {
                 ${escapeSupplierHtml(supplier.name)}
               </div>
             </td>
-            <td>${escapeSupplierHtml(supplier.phone || '—')}</td>
-            <td>${escapeSupplierHtml(supplier.email || '—')}</td>
+            <td>${escapeSupplierHtml(supplier.phone || '--')}</td>
+            <td>${escapeSupplierHtml(supplier.email || '--')}</td>
             <td>
               <span class="text-muted">
-                ${escapeSupplierHtml(supplier.address || '—')}
+                ${escapeSupplierHtml(supplier.address || '--')}
               </span>
             </td>
             ${isAdmin ? `
@@ -249,8 +249,9 @@ const SupplierApi = {
                     data-action="edit"
                     data-id="${id}"
                     title="Chỉnh sửa"
+                    aria-label="Chỉnh sửa nhà cung cấp ${escapeSupplierHtml(supplier.name)}"
                   >
-                    <i class="bi bi-pencil"></i>
+                    <i class="bi bi-pencil" aria-hidden="true"></i>
                   </button>
                   <button
                     class="btn btn-outline-danger"
@@ -258,8 +259,9 @@ const SupplierApi = {
                     data-action="delete"
                     data-id="${id}"
                     title="Xóa"
+                    aria-label="Xóa nhà cung cấp ${escapeSupplierHtml(supplier.name)}"
                   >
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash" aria-hidden="true"></i>
                   </button>
                 </div>
               </td>
@@ -271,18 +273,24 @@ const SupplierApi = {
   
     // Render pagination.
     function renderPagination(meta) {
+      if (totalRecords === 0) {
+        paginationSummary.textContent = '';
+        paginationNav.innerHTML = '';
+        paginationContainer.classList.add('d-none');
+        return;
+      }
+
       const totalPages = Math.max(1, Math.ceil(totalRecords / currentLimit));
   
-      const start = totalRecords === 0
-        ? 0
-        : (currentPage - 1) * currentLimit + 1;
+      const start = (currentPage - 1) * currentLimit + 1;
   
       const end = Math.min(currentPage * currentLimit, totalRecords);
   
       paginationSummary.textContent =
-        `Hiển thị ${start}–${end} trong tổng số ${totalRecords} nhà cung cấp`;
+        `Hiển thị ${start} - ${end} trong tổng số ${totalRecords} nhà cung cấp`;
   
       paginationNav.innerHTML = '';
+      paginationContainer.classList.remove('d-none');
   
       if (totalPages <= 1) return;
   
@@ -348,11 +356,14 @@ const SupplierApi = {
       setLoading(true);
   
       try {
-        const result = await SupplierApi.list({
-          page: currentPage,
-          limit: currentLimit,
-          search: currentSearch,
-        });
+        const result = await SupplierApi.list(
+          {
+            page: currentPage,
+            limit: currentLimit,
+            search: currentSearch,
+          },
+          requestController.signal
+        );
   
         const suppliers = Array.isArray(result.data)
           ? result.data
@@ -378,7 +389,6 @@ const SupplierApi = {
   
         loadingState.classList.add('d-none');
         errorState.classList.add('d-none');
-        paginationContainer.classList.remove('d-none');
   
       } catch (error) {
         if (error.name === 'AbortError') return;

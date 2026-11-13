@@ -1,6 +1,5 @@
 /**
  * Cloud Inventory - Products UI Management
- * Phụ trách: Nguyễn Thị Huyền (Người 1 - Product & Category Management)
  * Kết nối: Express REST API & MySQL
  * Endpoints:
  *   - GET    /api/products (page, limit, search, category_id, sort, order)
@@ -167,25 +166,6 @@ function showToast(message, isSuccess = true) {
   }
 }
 
-/**
- * Lấy vai trò người dùng hiện tại (tương thích phân quyền Người 3 khi tích hợp Auth)
- * Mặc định 'ADMIN' trong môi trường dev local để kiểm thử đầy đủ CRUD
- */
-function getCurrentUserRole() {
-  const storedUser = localStorage.getItem('auth_user');
-  if (storedUser) {
-    try {
-      const parsed = JSON.parse(storedUser);
-      if (parsed.role) return parsed.role.toUpperCase();
-    } catch {
-      // Bỏ qua lỗi parse JSON
-    }
-  }
-  const storedRole = localStorage.getItem('user_role');
-  if (storedRole) return storedRole.toUpperCase();
-  return 'ADMIN';
-}
-
 // =============================================================================
 // 3. MAIN INITIALIZATION
 // =============================================================================
@@ -212,20 +192,20 @@ document.addEventListener('DOMContentLoaded', async function () {
   // 3.3. Khởi tạo trang Danh sách Sản phẩm
   const productTableBody = document.getElementById('productTableBody');
   if (productTableBody) {
-    initProductListPage();
+    initProductListPage(currentUser);
   }
 
   // 3.4. Khởi tạo trang Form Thêm / Sửa Sản phẩm
   const productForm = document.getElementById('productForm');
   if (productForm) {
-    initProductFormPage();
+    initProductFormPage(currentUser);
   }
 });
 
 // =============================================================================
 // 4. PRODUCT LIST PAGE LOGIC (products.html)
 // =============================================================================
-function initProductListPage() {
+function initProductListPage(currentUser) {
   const searchInput = document.getElementById('searchInput');
   const clearSearchBtn = document.getElementById('clearSearchBtn');
   const categoryFilter = document.getElementById('categoryFilter');
@@ -273,7 +253,7 @@ function initProductListPage() {
   let activeAbortController = null;
   let searchDebounceTimer = null;
   let pendingDeleteProduct = null;
-  const userRole = getCurrentUserRole();
+  const userRole = String(currentUser?.role || 'STAFF').toUpperCase();
 
   /**
    * Tải danh sách danh mục để đổ vào dropdown lọc
@@ -327,7 +307,13 @@ function initProductListPage() {
         activeAbortController.signal
       );
 
-      // 3. Ẩn loading state
+      // 3. Nếu trang hiện tại trống sau khi xóa bản ghi cuối, quay lại trang hợp lệ
+      if (items.length === 0 && meta.total > 0 && currentPage > 1) {
+        currentPage = Math.max(1, meta.totalPages || 1);
+        return loadProducts();
+      }
+
+      // 4. Ẩn loading state
       if (loadingState) loadingState.classList.add('d-none');
 
       // Cập nhật thống kê kết quả
@@ -438,15 +424,15 @@ function initProductListPage() {
       // Nút thao tác theo quyền
       let actionButtons = `
         <div class="btn-group btn-group-sm">
-          <a href="/product-form.html?mode=edit&id=${p.id}" class="btn-action-icon" title="Chỉnh sửa sản phẩm">
-            <i class="bi bi-pencil"></i>
+          <a href="/product-form.html?mode=edit&id=${p.id}" class="btn-action-icon" title="Chỉnh sửa sản phẩm" aria-label="Chỉnh sửa sản phẩm ${escapedName}">
+            <i class="bi bi-pencil" aria-hidden="true"></i>
           </a>
       `;
 
       if (userRole === 'ADMIN') {
         actionButtons += `
-          <button type="button" class="btn-action-icon danger btn-delete-product" data-id="${p.id}" data-sku="${escapedSku}" data-name="${escapedName}" title="Xóa sản phẩm">
-            <i class="bi bi-trash"></i>
+          <button type="button" class="btn-action-icon danger btn-delete-product" data-id="${p.id}" data-sku="${escapedSku}" data-name="${escapedName}" title="Xóa sản phẩm" aria-label="Xóa sản phẩm ${escapedName}">
+            <i class="bi bi-trash" aria-hidden="true"></i>
           </button>
         `;
       }
@@ -459,7 +445,7 @@ function initProductListPage() {
           <td><span class="col-sku">${escapedSku}</span></td>
           <td>
             <div class="fw-semibold text-dark">${escapedName}</div>
-            <div class="small text-muted d-block d-md-none">${p.category_name || 'Chưa phân loại'}</div>
+            <div class="small text-muted d-block d-md-none">${p.category_name ? escapeHtml(p.category_name) : 'Chưa phân loại'}</div>
           </td>
           <td>${escapedCat}</td>
           <td class="fw-semibold text-end col-num">${formatCurrency(p.price)}</td>

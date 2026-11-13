@@ -216,7 +216,7 @@
                 : '<span class="text-muted">Không áp dụng</span>'}
             </td>
   
-            <td>#${escapeHtml(item.created_by)}</td>
+            <td>${escapeHtml(item.created_by_name || `#${item.created_by}`)}</td>
   
             <td>${escapeHtml(formatDate(item.created_at))}</td>
   
@@ -224,11 +224,13 @@
   
             <td class="text-center">
               <button
+                type="button"
                 class="btn btn-sm btn-outline-primary btn-detail"
                 data-id="${item.id}"
                 title="Xem chi tiết"
+                aria-label="Xem chi tiết phiếu #${item.id}"
               >
-                <i class="bi bi-eye"></i>
+                <i class="bi bi-eye" aria-hidden="true"></i>
               </button>
             </td>
           </tr>
@@ -544,7 +546,7 @@
   
           <div class="col-md-6">
             <div class="text-muted small">Người tạo</div>
-            <div>#${escapeHtml(transaction.created_by)}</div>
+            <div>${escapeHtml(transaction.created_by_name || `#${transaction.created_by}`)}</div>
           </div>
   
           <div class="col-md-6">
@@ -664,7 +666,11 @@
         state.user = await API.requireLogin({
           roles: ['ADMIN', 'STAFF'],
         });
-  
+      } catch {
+        return; // Tự động chuyển hướng về trang đăng nhập
+      }
+
+      try {
         Layout.render({
           active: 'stock-transactions',
           user: state.user,

@@ -3,7 +3,7 @@ const { authenticate } = require('../../middlewares/auth');
 const { authorize } = require('../../middlewares/role');
 const dashboardController = require('./dashboard.controller');
 
-// Module: dashboard — phụ trách: Người 3
+// Module: dashboard
 // Phân quyền theo quy ước:
 // - Yêu cầu đăng nhập: authenticate
 // - GET: ADMIN và STAFF đều được phép xem

@@ -190,9 +190,11 @@ async function list({ page, limit, offset, type, productId, from, to }) {
 
   const rows = await db.query(
     `SELECT st.id, st.type, st.supplier_id, st.created_by,
+            u.full_name AS created_by_name,
             st.note, st.created_at, s.name AS supplier_name
      FROM stock_transactions st
      LEFT JOIN suppliers s ON s.id = st.supplier_id
+     LEFT JOIN users u ON u.id = st.created_by
      ${where}
      ORDER BY st.id DESC
      LIMIT ? OFFSET ?`,

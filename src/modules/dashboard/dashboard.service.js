@@ -2,7 +2,6 @@ const db = require("../../config/db");
 
 /**
  * Service: Dashboard
- * Phụ trách: Người 3
  */
 
 /**

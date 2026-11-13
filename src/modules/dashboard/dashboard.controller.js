@@ -3,7 +3,6 @@ const { ok } = require("../../utils/response");
 
 /**
  * Controller: Dashboard
- * Phụ trách: Người 3
  */
 
 /**

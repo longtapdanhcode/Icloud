@@ -3,7 +3,7 @@ const { authenticate } = require('../../middlewares/auth');
 const { authorize } = require('../../middlewares/role');
 const productsController = require('./products.controller');
 
-// Module: products — phụ trách: Người 1
+// Module: products
 // Phân quyền theo quy ước:
 // - Tất cả route yêu cầu: authenticate
 // - GET: ADMIN, STAFF

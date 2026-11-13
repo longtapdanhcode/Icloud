@@ -1,6 +1,5 @@
 /**
  * Cloud Inventory - Categories UI Management
- * Phụ trách: Nguyễn Thị Huyền (Người 1 - Product & Category Management)
  * Kết nối: Express REST API & MySQL
  * Endpoints:
  *   - GET    /api/categories
@@ -128,41 +127,25 @@ function showToast(message, isSuccess = true) {
   }
 }
 
-/**
- * Kiểm tra quyền hạn hiện tại (tương thích phân quyền Người 3 khi tích hợp Auth)
- * Mặc định 'ADMIN' trong môi trường dev local để kiểm thử đầy đủ CRUD
- */
-function getCurrentUserRole() {
-  const storedUser = localStorage.getItem('auth_user');
-  if (storedUser) {
-    try {
-      const parsed = JSON.parse(storedUser);
-      if (parsed.role) return parsed.role.toUpperCase();
-    } catch {
-      // Bỏ qua lỗi parse JSON
-    }
-  }
-  const storedRole = localStorage.getItem('user_role');
-  if (storedRole) return storedRole.toUpperCase();
-  return 'ADMIN';
-}
-
 // =============================================================================
 // 3. MAIN INITIALIZATION
 // =============================================================================
 document.addEventListener('DOMContentLoaded', async function () {
-  // 3.1. Xác thực đăng nhập bắt buộc qua Api.requireLogin
+  const isFormPage = !!document.getElementById('categoryForm');
+
+  // 3.1. Xác thực đăng nhập và phân quyền trang
   let currentUser = null;
   if (window.Api && typeof window.Api.requireLogin === 'function') {
     try {
-      currentUser = await window.Api.requireLogin({ roles: ['ADMIN', 'STAFF'] });
+      currentUser = await window.Api.requireLogin({
+        roles: isFormPage ? ['ADMIN'] : ['ADMIN', 'STAFF'],
+      });
     } catch {
-      return; // Tự động về trang đăng nhập
+      return; // Tự động về trang đăng nhập hoặc từ chối truy cập
     }
   }
 
   // 3.2. Render Layout dùng chung (Sidebar + Navbar)
-  const isFormPage = !!document.getElementById('categoryForm');
   if (window.Layout && typeof window.Layout.render === 'function') {
     window.Layout.render({
       active: isFormPage ? 'category-form' : 'categories',
@@ -173,25 +156,27 @@ document.addEventListener('DOMContentLoaded', async function () {
   // 3.3. Khởi tạo trang Danh sách Danh mục
   const categoryTableBody = document.getElementById('categoryTableBody');
   if (categoryTableBody) {
-    initCategoryListPage();
+    initCategoryListPage(currentUser);
   }
 
   // 3.4. Khởi tạo trang Form Thêm / Sửa Danh mục
   const categoryForm = document.getElementById('categoryForm');
   if (categoryForm) {
-    initCategoryFormPage();
+    initCategoryFormPage(currentUser);
   }
 });
 
 // =============================================================================
 // 4. CATEGORY LIST PAGE LOGIC (categories.html)
 // =============================================================================
-function initCategoryListPage() {
+function initCategoryListPage(currentUser) {
   const searchInput = document.getElementById('categorySearchInput');
   const clearSearchBtn = document.getElementById('clearSearchBtn');
   const resultCount = document.getElementById('categoryResultCount');
   const statTotalCat = document.getElementById('statTotalCategories');
   const statTotalProd = document.getElementById('statTotalCatProducts');
+  const authRoleIndicator = document.getElementById('authRoleIndicator');
+  const authRoleDescription = document.getElementById('authRoleDescription');
   const tableBody = document.getElementById('categoryTableBody');
   const tableContainer = document.getElementById('categoryTableContainer');
   const loadingState = document.getElementById('categoryLoadingState');
@@ -201,6 +186,8 @@ function initCategoryListPage() {
   const emptyMessage = document.getElementById('categoryEmptyMessage');
   const btnRetry = document.getElementById('btnRetryFetch');
   const addNewBtn = document.getElementById('addNewCategoryBtn');
+  const addNewWrap = document.getElementById('addNewCategoryWrap');
+  const addFirstBtn = document.getElementById('addFirstCategoryBtn');
 
   // Delete modal elements
   const deleteModalEl = document.getElementById('deleteCatModal');
@@ -216,12 +203,22 @@ function initCategoryListPage() {
 
   let categoriesData = [];
   let pendingDeleteCategory = null;
-  const userRole = getCurrentUserRole();
+  const userRole = String(currentUser?.role || 'STAFF').toUpperCase();
+  const isAdmin = userRole === 'ADMIN';
 
-  // Kiểm soát hiển thị nút thêm theo role (STAFF không thêm được)
-  if (userRole === 'STAFF' && addNewBtn) {
-    addNewBtn.classList.add('disabled');
-    addNewBtn.setAttribute('title', 'Tài khoản STAFF chỉ có quyền xem danh mục');
+  // Hiển thị vai trò thực tế và kiểm soát hiển thị nút thêm theo quyền
+  if (authRoleIndicator) {
+    authRoleIndicator.textContent = isAdmin ? 'Quản trị viên (ADMIN)' : 'Nhân viên (STAFF)';
+  }
+  if (authRoleDescription) {
+    authRoleDescription.innerHTML = isAdmin
+      ? '<i class="bi bi-shield-check" aria-hidden="true"></i> ADMIN toàn quyền thêm, sửa, xóa'
+      : '<i class="bi bi-eye" aria-hidden="true"></i> STAFF chỉ có quyền xem danh mục';
+  }
+  if (!isAdmin) {
+    if (addNewBtn) addNewBtn.classList.add('d-none');
+    if (addNewWrap) addNewWrap.classList.add('d-none');
+    if (addFirstBtn) addFirstBtn.classList.add('d-none');
   }
 
   /**
@@ -356,18 +353,18 @@ function initCategoryListPage() {
       if (userRole === 'ADMIN') {
         actionButtons = `
           <div class="btn-group btn-group-sm">
-            <a href="/category-form.html?mode=edit&id=${cat.id}" class="btn-action-icon" title="Chỉnh sửa danh mục">
-              <i class="bi bi-pencil"></i>
+            <a href="/category-form.html?mode=edit&id=${cat.id}" class="btn-action-icon" title="Chỉnh sửa danh mục" aria-label="Chỉnh sửa danh mục ${escapedName}">
+              <i class="bi bi-pencil" aria-hidden="true"></i>
             </a>
-            <button type="button" class="btn-action-icon danger btn-delete-cat" data-id="${cat.id}" data-name="${escapedName}" data-count="${productCount}" title="Xóa danh mục">
-              <i class="bi bi-trash"></i>
+            <button type="button" class="btn-action-icon danger btn-delete-cat" data-id="${cat.id}" data-name="${escapedName}" data-count="${productCount}" title="Xóa danh mục" aria-label="Xóa danh mục ${escapedName}">
+              <i class="bi bi-trash" aria-hidden="true"></i>
             </button>
           </div>
         `;
       } else {
         actionButtons = `
           <span class="badge bg-light text-secondary border" title="Tài khoản STAFF chỉ có quyền xem">
-            <i class="bi bi-eye"></i> Chỉ xem
+            <i class="bi bi-eye" aria-hidden="true"></i> Chỉ xem
           </span>
         `;
       }
@@ -385,8 +382,8 @@ function initCategoryListPage() {
             <div class="text-secondary text-truncate" style="max-width: 380px;">${escapedDesc}</div>
           </td>
           <td class="text-center">
-            <span class="badge ${productCount > 0 ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-secondary-subtle text-secondary border border-secondary-subtle'} px-2 py-1 rounded-pill fw-semibold">
-              <i class="bi bi-box-seam me-1"></i>${productCount} sản phẩm
+            <span class="badge ${productCount > 0 ? 'bg-primary-subtle text-primary-emphasis border border-primary-subtle' : 'bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle'} px-2 py-1 rounded-pill fw-semibold">
+              <i class="bi bi-box-seam me-1" aria-hidden="true"></i>${productCount} sản phẩm
             </span>
           </td>
           <td class="text-end">
@@ -533,7 +530,7 @@ function initCategoryListPage() {
 // =============================================================================
 // 5. CATEGORY FORM PAGE LOGIC (category-form.html)
 // =============================================================================
-function initCategoryFormPage() {
+function initCategoryFormPage(currentUser) {
   const urlParams = new URLSearchParams(window.location.search);
   const mode = urlParams.get('mode') === 'edit' ? 'edit' : 'create';
   const categoryId = urlParams.get('id');
@@ -558,11 +555,11 @@ function initCategoryFormPage() {
   const formLoadingState = document.getElementById('formLoadingState');
   const formContentBody = document.getElementById('formContentBody');
 
-  const userRole = getCurrentUserRole();
+  const userRole = String(currentUser?.role || 'STAFF').toUpperCase();
   let initialData = null;
 
   // Kiểm tra quyền hạn (STAFF không có quyền thêm/sửa)
-  if (userRole === 'STAFF') {
+  if (userRole !== 'ADMIN') {
     if (formAlertContainer) {
       formAlertContainer.innerHTML = `
         <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
@@ -746,8 +743,8 @@ function initCategoryFormPage() {
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
 
-      // Nếu role là STAFF thì chặn
-      if (userRole === 'STAFF') {
+      // Nếu role không phải ADMIN thì chặn
+      if (userRole !== 'ADMIN') {
         showFormAlert('warning', 'Tài khoản STAFF chỉ có quyền xem, không được thêm hoặc cập nhật danh mục.');
         return;
       }
