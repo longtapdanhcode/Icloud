@@ -4,6 +4,25 @@ Hệ thống quản lý sản phẩm và tồn kho cho cửa hàng/doanh nghiệ
 
 **Stack:** Node.js 22+ • Express 5 • MySQL 8 • Bootstrap • Render + Aiven MySQL • GitHub Actions
 
+**Production:** https://cloud-inventory-ruyb.onrender.com (kiểm tra trạng thái: [`/health`](https://cloud-inventory-ruyb.onrender.com/health)). Lần mở đầu có thể chờ 1–3 phút vì gói Free của Render tắt app khi không có ai dùng.
+
+## Kiến trúc
+
+```mermaid
+flowchart LR
+  user[Trình duyệt] -- HTTPS --> render
+  subgraph render[Render, gói Free]
+    app[Node.js / Express<br/>API + trang tĩnh public/]
+  end
+  app -- TLS --> db[(Aiven MySQL 8)]
+  dev[Lập trình viên] -- Pull Request --> gh[GitHub]
+  gh -- "CI: test + gitleaks" --> gh
+  gh -- "merge main, CI xanh: auto-deploy" --> render
+  gh -- "smoke test mỗi sáng" --> app
+```
+
+Một backend Express chia module (modular monolith), phục vụ cả API `/api/*` lẫn giao diện HTML/Bootstrap. Secret (`DATABASE_URL`, `JWT_SECRET`, `DB_CA_CERT`) chỉ nằm trong biến môi trường của Render.
+
 ## Chạy trên máy (khoảng 10 phút)
 
 Yêu cầu: Node.js 22+, Docker Desktop (để chạy MySQL).
@@ -20,7 +39,7 @@ npm run dev                # http://localhost:3000, tự restart khi sửa code
 
 Kiểm tra: mở http://localhost:3000/health và thấy `"db":"up"`.
 
-Tài khoản mẫu: `admin@inventory.local / Admin@123` (ADMIN), `staff@inventory.local / Staff@123` (STAFF).
+Tài khoản mẫu (chỉ dùng ở local): `admin@inventory.local / Admin@123` (ADMIN), `staff@inventory.local / Staff@123` (STAFF). Production dùng mật khẩu khác, hỏi Người 4.
 
 Không dùng Docker? Có thể cài MySQL 8 trực tiếp, tạo database `inventory`, rồi sửa `DATABASE_URL` trong `.env`.
 
@@ -60,9 +79,9 @@ src/
     └── dashboard/         # /api/dashboard
 public/                    # frontend tĩnh (HTML/CSS/JS)
 db/migrations/             # thay đổi schema theo thứ tự (xem docs/DATABASE_MIGRATIONS.md)
-scripts/                   # migrate.js, seed.js
+scripts/                   # migrate, seed, smoke test, backup/restore
 tests/                     # node:test + supertest
-docs/                      # quy ước API, hướng dẫn deploy
+docs/                      # tài liệu, xem mục Tài liệu bên dưới
 ```
 
 Mỗi người chỉ làm trong thư mục module của mình. Router đã được gắn sẵn trong `src/app.js` nên **không cần sửa app.js**, tránh xung đột merge.
@@ -84,6 +103,14 @@ Mỗi người chỉ làm trong thư mục module của mình. Router đã đư�
 
 **Không bao giờ commit `.env`, mật khẩu hoặc key.**
 
-## Triển khai
+## Tài liệu
 
-Triển khai trên **Render + Aiven MySQL**, xem chi tiết tại [docs/RENDER_SETUP.md](docs/RENDER_SETUP.md).
+| Tài liệu | Nội dung |
+|---|---|
+| [docs/API_CONVENTIONS.md](docs/API_CONVENTIONS.md) | Quy ước API, mã lỗi, phân trang |
+| [docs/DATABASE_MIGRATIONS.md](docs/DATABASE_MIGRATIONS.md) | Cách thay đổi schema |
+| [docs/RENDER_SETUP.md](docs/RENDER_SETUP.md) | Triển khai Render + Aiven, CI/CD, log, bảo mật |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | Vận hành: deploy, rollback, xem log, xử lý sự cố |
+| [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Sao lưu, khôi phục và biên bản restore thử |
+| [docs/LIMITS.md](docs/LIMITS.md) | Giới hạn, chi phí gói Free và số liệu hiệu năng |
+| [docs/DEMO.md](docs/DEMO.md) | Kịch bản demo và chuẩn bị |

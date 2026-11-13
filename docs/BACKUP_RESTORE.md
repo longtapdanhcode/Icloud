@@ -64,14 +64,14 @@ DATABASE_URL=mysql://root:root@localhost:3306/inventory_restore PORT=3001 npm st
 
 Chỉ làm khi dữ liệu trên Aiven bị hỏng hoặc mất, và cả nhóm đã thống nhất. Dữ liệu phát sinh sau thời điểm backup sẽ mất.
 
-1. Render → service → **Settings → Maintenance Mode: On**, để không ai ghi thêm trong lúc khôi phục.
+1. Chặn ghi dữ liệu trong lúc khôi phục: Render → service → **Settings → Suspend Web Service** (nếu dashboard có nút này). Nếu không có, báo cả nhóm ngừng thao tác trên web. Maintenance Mode chỉ có trên gói trả phí nên không dùng được.
 2. Backup trạng thái hiện tại trước (`npm run db:backup`), phòng khi cần quay lại.
 3. Khôi phục bản tốt gần nhất:
    ```bash
    read -s "RESTORE_DATABASE_URL?Aiven Service URI: "; export RESTORE_DATABASE_URL
    npm run db:restore -- backups/<bản tốt>.sql.gz --replace --allow-remote
    ```
-4. Tắt Maintenance Mode, mở `/health`, chạy smoke test (GitHub → Actions → Smoke test → Run workflow).
+4. Nếu đã Suspend thì bấm **Resume Web Service**. Mở `/health`, chạy smoke test (GitHub → Actions → Smoke test → Run workflow).
 
 Bảng `schema_migrations` được khôi phục cùng dữ liệu, nên lần deploy sau `db:migrate` chỉ chạy những migration mới hơn bản backup.
 
