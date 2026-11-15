@@ -115,4 +115,5 @@ Mỗi người chỉ làm trong thư mục module của mình. Router đã đư�
 | [docs/BACKUP_RESTORE.md](docs/BACKUP_RESTORE.md) | Sao lưu, khôi phục và biên bản restore thử |
 | [docs/LIMITS.md](docs/LIMITS.md) | Giới hạn, chi phí gói Free và số liệu hiệu năng |
 | [docs/DEMO.md](docs/DEMO.md) | Kịch bản demo và chuẩn bị |
+| [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md) | Checklist và biên bản nghiệm thu |
 | [postman/README.md](postman/README.md) | Postman collection cho toàn bộ API, chạy trên local hoặc production |
